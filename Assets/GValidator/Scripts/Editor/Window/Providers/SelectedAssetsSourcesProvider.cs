@@ -1,10 +1,12 @@
 using System.Collections.Generic;
 using GValidator.Validation.AssetSources;
 
-namespace GValidator.Providers
+namespace GValidator.Window.Providers
 {
     public sealed class SelectedAssetsSourcesProvider
     {
+        public IReadOnlyList<IAssetsSource> All => _sources;
+        
         readonly IReadOnlyList<IAssetsSource> _sources;
         readonly HashSet<IAssetsSource> _disabledSources = new();
 
@@ -13,16 +15,16 @@ namespace GValidator.Providers
             _sources = sources;
         }
 
-        public IReadOnlyList<IAssetsSource> All => _sources;
-
-        public IReadOnlyList<IAssetsSource> Get()
+        public IReadOnlyList<IAssetsSource> GetSelected()
         {
-            var selectedSources = new List<IAssetsSource>();
+            List<IAssetsSource> selectedSources = new();
 
             foreach (IAssetsSource source in _sources)
             {
                 if (!_disabledSources.Contains(source))
+                {
                     selectedSources.Add(source);
+                }
             }
 
             return selectedSources;
@@ -36,9 +38,13 @@ namespace GValidator.Providers
         public void SetSelected(IAssetsSource source, bool isSelected)
         {
             if (isSelected)
+            {
                 _disabledSources.Remove(source);
+            }
             else
+            {
                 _disabledSources.Add(source);
+            }
         }
     }
 }

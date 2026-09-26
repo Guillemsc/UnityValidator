@@ -7,16 +7,13 @@ namespace GValidator.Validation.Assets
     public sealed class AssetsProvider : IAssetsProvider
     {
         readonly IReadOnlyList<IAssetsSource> _assetsSources;
-        readonly IDisabledAssetsProvider _disabledAssetProvider;
         readonly string[] _searchInFolders;
 
         public AssetsProvider(
             IReadOnlyList<IAssetsSource> assetsSources,
-            IDisabledAssetsProvider disabledAssetProvider, 
             string[] searchInFolders)
         {
             _assetsSources = assetsSources;
-            _disabledAssetProvider = disabledAssetProvider;
             _searchInFolders = searchInFolders;
         }
 

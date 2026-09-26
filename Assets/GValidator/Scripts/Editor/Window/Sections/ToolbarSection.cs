@@ -6,6 +6,7 @@ using GValidator.Validation.Assets;
 using GValidator.Validation.Context;
 using GValidator.Validation.Result;
 using GValidator.Validation.Runner;
+using GValidator.Window.Providers;
 
 namespace GValidator.Sections
 {
@@ -45,13 +46,12 @@ namespace GValidator.Sections
 
         void OnRunAllClicked()
         {
-            var validators =  _validatorsProvider.Get()
+            var validators = _validatorsProvider.Get()
                 .Select(o => o.Validator)
                 .ToList();
 
             AssetsProvider assetsProvider = new(
-                _assetsSourcesProvider.Get(),
-                new DisabledAssetsProvider(),
+                _assetsSourcesProvider.GetSelected(),
                 System.Array.Empty<string>());
 
             ValidationContext validationContext = new(

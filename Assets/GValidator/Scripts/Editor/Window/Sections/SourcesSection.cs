@@ -1,17 +1,18 @@
 using System.Collections.Generic;
 using GValidator.Models;
-using GValidator.Providers;
 using GValidator.Validation.AssetSources;
+using GValidator.Window.Providers;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace GValidator.Sections
+namespace GValidator.Window.Sections
 {
     public sealed class SourcesSection
     {
         readonly GValidatorWindowReferences _references;
         readonly SelectedAssetsSourcesProvider _selectedSourcesProvider;
+        readonly Dictionary<SceneAssetsSource, Toggle> _sceneToggles = new();
 
         public SourcesSection(
             GValidatorWindowReferences references,
@@ -20,11 +21,24 @@ namespace GValidator.Sections
             _references = references;
             _selectedSourcesProvider = selectedSourcesProvider;
 
+            _references.SelectAllScenesButton.clicked += () => SetAllScenesSelected(true);
+            _references.DeselectAllScenesButton.clicked += () => SetAllScenesSelected(false);
+
             SetupSourcesList();
+        }
+
+        void SetAllScenesSelected(bool isSelected)
+        {
+            foreach (KeyValuePair<SceneAssetsSource, Toggle> entry in _sceneToggles)
+            {
+                _selectedSourcesProvider.SetSelected(entry.Key, isSelected);
+                entry.Value.SetValueWithoutNotify(isSelected);
+            }
         }
 
         void SetupSourcesList()
         {
+            _sceneToggles.Clear();
             _references.SourceList.Clear();
 
             if (_selectedSourcesProvider.All.Count == 0)
@@ -42,12 +56,14 @@ namespace GValidator.Sections
                 VisualElement row = new()
                 {
                     tooltip = source.Name,
+                    style =
+                    {
+                        flexDirection = FlexDirection.Row,
+                        alignItems = Align.Center,
+                        minHeight = 22,
+                        flexShrink = 0
+                    }
                 };
-
-                row.style.flexDirection = FlexDirection.Row;
-                row.style.alignItems = Align.Center;
-                row.style.minHeight = 22;
-                row.style.flexShrink = 0;
 
                 if (index % 2 == 1)
                 {
@@ -56,31 +72,73 @@ namespace GValidator.Sections
                         : new Color(0f, 0f, 0f, 0.025f);
                 }
 
-                Toggle toggle = new();
-                toggle.value = _selectedSourcesProvider.IsSelected(source);
-                toggle.style.width = 16;
-                toggle.style.flexShrink = 0;
-                toggle.style.marginRight = 0;
-                toggle.style.marginLeft = 5;
-                toggle.style.alignItems = Align.Center;
-                toggle.style.justifyContent = Justify.Center;
-                toggle.style.marginBottom = 0;
-                toggle.style.marginTop = 0;
+                Toggle toggle = new()
+                {
+                    value = _selectedSourcesProvider.IsSelected(source),
+                    style =
+                    {
+                        width = 16,
+                        flexShrink = 0,
+                        marginRight = 0,
+                        marginLeft = 5,
+                        alignItems = Align.Center,
+                        justifyContent = Justify.Center,
+                        marginBottom = 0,
+                        marginTop = 0
+                    }
+                };
                 toggle.RegisterValueChangedCallback(evt =>
                     _selectedSourcesProvider.SetSelected(source, evt.newValue));
 
-                Label label = new(source.Name);
-                label.style.flexGrow = 1;
-                label.style.flexShrink = 1;
-                label.style.overflow = Overflow.Hidden;
-                label.style.whiteSpace = WhiteSpace.NoWrap;
-                label.style.textOverflow = TextOverflow.Ellipsis;
-                label.style.paddingLeft = 0;
-                label.style.paddingRight = 0;
-                label.style.marginLeft = 4;
-                label.style.marginRight = 5;
+                if (source is SceneAssetsSource sceneSource)
+                    _sceneToggles.Add(sceneSource, toggle);
 
-                row.Add(toggle);
+                string iconName = source switch
+                {
+                    SceneAssetsSource _ => "SceneAsset Icon",
+                    AssetsFolderAssetsSource _ => "Folder Icon",
+                    _ => string.Empty
+                };
+
+                if (!string.IsNullOrEmpty(iconName))
+                {
+                    Image icon = new()
+                    {
+                        image = EditorGUIUtility.IconContent(iconName).image,
+                        tooltip = source.Name,
+                        style =
+                        {
+                            width = 16,
+                            height = 16,
+                            flexShrink = 0,
+                            marginLeft = 3,
+                            marginRight = 2
+                        }
+                    };
+                    row.Add(toggle);
+                    row.Add(icon);
+                }
+                else
+                {
+                    row.Add(toggle);
+                }
+
+                Label label = new(source.Name)
+                {
+                    style =
+                    {
+                        flexGrow = 1,
+                        flexShrink = 1,
+                        overflow = Overflow.Hidden,
+                        whiteSpace = WhiteSpace.NoWrap,
+                        textOverflow = TextOverflow.Ellipsis,
+                        paddingLeft = 0,
+                        paddingRight = 0,
+                        marginLeft = 4,
+                        marginRight = 5
+                    }
+                };
+
                 row.Add(label);
                 _references.SourceList.Add(row);
             }

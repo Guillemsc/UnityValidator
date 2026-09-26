@@ -5,6 +5,8 @@ using GValidator.Sections;
 using GValidator.Validation.Assets;
 using GValidator.Validation.AssetSources;
 using GValidator.Validation.Providers;
+using GValidator.Window.Providers;
+using GValidator.Window.Sections;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -58,15 +60,15 @@ namespace GValidator.Windows
             
             _visualTreeAsset.CloneTree(rootVisualElement);
             _references.Gather(rootVisualElement);
-
-            DisabledAssetsProvider disabledAssetsProvider = new();
+            
+            List<IAssetsSource> assetSources = new();
+            assetSources.Add(AssetsFolderAssetsSource.Instance);
+            assetSources.AddRange(SceneAssetsSourceFactory.CreateAll());
+            SelectedAssetsSourcesProvider selectedAssetsSourcesProvider = new(assetSources);
+            
             ValidatorsProvider validatorsProvider = new();
             CurrentValidationProvider currentValidationProvider = new();
             SelectedValidatorsProvider selectedValidatorsProvider = new(validatorsProvider);
-            List<IAssetsSource> assetSources = new();
-            assetSources.AddRange(SceneAssetsSourceFactory.CreateAll());
-            assetSources.Add(AssetsFolderAssetsSource.Instance);
-            SelectedAssetsSourcesProvider selectedAssetsSourcesProvider = new(assetSources);
             SelectedValidationMessageProvider selectedValidationMessageProvider = new();
 
             SourcesSection sourcesSection = new(
