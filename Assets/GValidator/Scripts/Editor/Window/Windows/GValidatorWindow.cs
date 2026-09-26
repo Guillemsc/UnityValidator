@@ -1,7 +1,9 @@
+using System.Collections.Generic;
 using GValidator.Models;
 using GValidator.Providers;
 using GValidator.Sections;
 using GValidator.Validation.Assets;
+using GValidator.Validation.AssetSources;
 using GValidator.Validation.Providers;
 using UnityEditor;
 using UnityEngine;
@@ -61,7 +63,15 @@ namespace GValidator.Windows
             ValidatorsProvider validatorsProvider = new();
             CurrentValidationProvider currentValidationProvider = new();
             SelectedValidatorsProvider selectedValidatorsProvider = new(validatorsProvider);
+            List<IAssetsSource> assetSources = new();
+            assetSources.AddRange(SceneAssetsSourceFactory.CreateAll());
+            assetSources.Add(AssetsFolderAssetsSource.Instance);
+            SelectedAssetsSourcesProvider selectedAssetsSourcesProvider = new(assetSources);
             SelectedValidationMessageProvider selectedValidationMessageProvider = new();
+
+            SourcesSection sourcesSection = new(
+                _references,
+                selectedAssetsSourcesProvider);
 
             ValidatorsSection validatorsSection = new(
                 _references,
@@ -79,7 +89,8 @@ namespace GValidator.Windows
             ToolbarSection toolbarSection = new(
                 _references,
                 selectedValidatorsProvider,
-                currentValidationProvider);
+                currentValidationProvider,
+                selectedAssetsSourcesProvider);
 
             DetailsSection detailsSection = new(
                 _references,

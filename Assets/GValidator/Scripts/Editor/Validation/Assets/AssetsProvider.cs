@@ -1,36 +1,36 @@
 using System.Collections.Generic;
-using UnityEditor;
+using GValidator.Validation.AssetSources;
 using UnityEngine;
 
 namespace GValidator.Validation.Assets
 {
     public sealed class AssetsProvider : IAssetsProvider
     {
+        readonly IReadOnlyList<IAssetsSource> _assetsSources;
         readonly IDisabledAssetsProvider _disabledAssetProvider;
+        readonly string[] _searchInFolders;
 
-        public AssetsProvider(IDisabledAssetsProvider disabledAssetProvider)
+        public AssetsProvider(
+            IReadOnlyList<IAssetsSource> assetsSources,
+            IDisabledAssetsProvider disabledAssetProvider, 
+            string[] searchInFolders)
         {
+            _assetsSources = assetsSources;
             _disabledAssetProvider = disabledAssetProvider;
+            _searchInFolders = searchInFolders;
         }
 
-        public List<Object> GetAssets(string filters)
+        public IEnumerable<Object> GetAssets(string filter)
         {
-            List<Object> assets = new();
-            
-            string[] assetPaths = AssetDatabase.FindAssets(filters);
-            
-            foreach (string guid in assetPaths)
+            foreach (var source in _assetsSources)
             {
-                string path = AssetDatabase.GUIDToAssetPath(guid);
-                
-                var isDisabled = _disabledAssetProvider.IsDisabledAsset(path);
-                if(isDisabled) continue;
-                
-                Object asset = AssetDatabase.LoadMainAssetAtPath(path);
-                assets.Add(asset);
-            }
+                var assets = source.GetAssets(filter, _searchInFolders);
 
-            return assets;
+                foreach (var asset in assets)
+                {
+                    yield return asset;
+                }
+            }
         }
     }
 }

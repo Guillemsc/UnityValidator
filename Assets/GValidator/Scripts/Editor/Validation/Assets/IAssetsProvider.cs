@@ -5,6 +5,6 @@ namespace GValidator.Validation.Assets
 {
     public interface IAssetsProvider
     {
-        List<Object> GetAssets(string filters);
+        IEnumerable<Object> GetAssets(string filter);
     }
 }

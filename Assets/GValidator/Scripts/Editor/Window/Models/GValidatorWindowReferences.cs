@@ -16,6 +16,8 @@ namespace GValidator.Models
         public ToolbarToggle ErrorToggle { get; private set; } = null!;
         public TwoPaneSplitView ContentSplit { get; private set; } = null!;
         public VisualElement ValidatorPane { get; private set; } = null!;
+        public ScrollView SourceList { get; private set; } = null!;
+        public Label SourceListEmpty { get; private set; } = null!;
         public ScrollView ValidatorList { get; private set; } = null!;
         public Label ValidatorListEmpty { get; private set; } = null!;
         public VisualElement ResultsPane { get; private set; } = null!;
@@ -37,6 +39,8 @@ namespace GValidator.Models
             ErrorToggle = Get<ToolbarToggle>(root, "error-toggle");
             ContentSplit = Get<TwoPaneSplitView>(root, "content-split");
             ValidatorPane = Get<VisualElement>(root, "validator-pane");
+            SourceList = Get<ScrollView>(root, "source-list");
+            SourceListEmpty = Get<Label>(root, "source-list-empty");
             ValidatorList = Get<ScrollView>(root, "validator-list");
             ValidatorListEmpty = Get<Label>(root, "validator-list-empty");
             ResultsPane = Get<VisualElement>(root, "results-pane");

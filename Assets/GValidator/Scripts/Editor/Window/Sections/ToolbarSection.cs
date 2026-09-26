@@ -4,7 +4,6 @@ using GValidator.Models;
 using GValidator.Providers;
 using GValidator.Validation.Assets;
 using GValidator.Validation.Context;
-using GValidator.Validation.Providers;
 using GValidator.Validation.Result;
 using GValidator.Validation.Runner;
 
@@ -15,15 +14,18 @@ namespace GValidator.Sections
         readonly GValidatorWindowReferences _references;
         readonly SelectedValidatorsProvider _validatorsProvider;
         readonly CurrentValidationProvider _currentValidationProvider;
+        readonly SelectedAssetsSourcesProvider _assetsSourcesProvider;
 
         public ToolbarSection(
             GValidatorWindowReferences references, 
             SelectedValidatorsProvider validatorsProvider, 
-            CurrentValidationProvider currentValidationProvider)
+            CurrentValidationProvider currentValidationProvider,
+            SelectedAssetsSourcesProvider assetsSourcesProvider)
         {
             _references = references;
             _validatorsProvider = validatorsProvider;
             _currentValidationProvider = currentValidationProvider;
+            _assetsSourcesProvider = assetsSourcesProvider;
 
             SetupToggles();
 
@@ -47,9 +49,14 @@ namespace GValidator.Sections
                 .Select(o => o.Validator)
                 .ToList();
 
+            AssetsProvider assetsProvider = new(
+                _assetsSourcesProvider.Get(),
+                new DisabledAssetsProvider(),
+                System.Array.Empty<string>());
+
             ValidationContext validationContext = new(
                 validators,
-                new AssetsProvider(new DisabledAssetsProvider()));
+                assetsProvider);
             
             ValidationRunner validationRunner = new();
             var validationResult = validationRunner.Run(validationContext);
