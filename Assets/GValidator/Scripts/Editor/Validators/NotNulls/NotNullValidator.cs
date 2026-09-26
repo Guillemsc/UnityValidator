@@ -6,7 +6,9 @@ using GValidator.Validation.Builder;
 using GValidator.Validation.Context;
 using GValidator.Validation.Models;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
 namespace GValidator.Validators.NotNulls
@@ -28,6 +30,13 @@ namespace GValidator.Validators.NotNulls
             foreach (var scriptableObject in scriptableObjects)
             {
                 ValidateScriptableObject(scriptableObject, builder);
+            }
+
+            var scenes = context.AssetsProvider.GetAssets("t:Scene");
+
+            foreach (var scene in scenes)
+            {
+                ValidateScene(scene, builder);
             }
         }
 
@@ -56,6 +65,47 @@ namespace GValidator.Validators.NotNulls
             ValidateObject(obj, builder);
             
             builder.ClearObject();
+        }
+
+        void ValidateScene(Object obj, IValidationBuilder builder)
+        {
+            if (obj is not SceneAsset) return;
+
+            string scenePath = AssetDatabase.GetAssetPath(obj);
+            if (string.IsNullOrWhiteSpace(scenePath)) return;
+
+            Scene scene = SceneManager.GetSceneByPath(scenePath);
+            bool alreadyLoaded = scene.IsValid() && scene.isLoaded;
+
+            if (!alreadyLoaded)
+            {
+                scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
+            }
+            
+            builder.SetObject(obj);
+
+            var rootGameObjects = scene.GetRootGameObjects();
+                
+            foreach (GameObject rootObject in rootGameObjects)
+            {
+                MonoBehaviour[] monoBehaviours = rootObject.GetComponentsInChildren<MonoBehaviour>(true);
+
+                foreach (MonoBehaviour monoBehaviour in monoBehaviours)
+                {
+                    if (monoBehaviour == null) continue;
+                            
+                    ValidateObject(monoBehaviour, builder);
+                }
+            }
+            
+            builder.ClearObject();
+
+            bool shouldClose = !alreadyLoaded && scene.IsValid() && scene.isLoaded;
+            
+            if (shouldClose)
+            {
+                EditorSceneManager.CloseScene(scene, true);
+            }
         }
 
         void ValidateObject(Object obj, IValidationBuilder builder)

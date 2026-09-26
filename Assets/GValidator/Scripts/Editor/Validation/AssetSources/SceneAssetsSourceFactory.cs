@@ -8,7 +8,7 @@ namespace GValidator.Validation.AssetSources
         public static List<SceneAssetsSource> CreateAll()
         {
             var sources = new List<SceneAssetsSource>();
-            string[] sceneGuids = AssetDatabase.FindAssets("t:Scene");
+            string[] sceneGuids = AssetDatabase.FindAssets("t:Scene", new[] { "Assets" });
 
             foreach (string guid in sceneGuids)
             {
