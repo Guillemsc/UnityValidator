@@ -13,10 +13,9 @@ namespace GValidator.Validators
         public Task ValidateAsync(
             IValidationBuilder builder,
             IValidationContext context,
-            IProgressBuilder progress)
+            IProgressScope progress)
         {
-            IProgressReporter reporter = progress.Begin(1);
-            reporter.Report(0, "Generating test validation messages", 0f);
+            progress.Report(0f, "Generating test validation messages");
 
             builder.Info("Info Info Info Info Info Info Info Info Info Info Info Info Info Info Info Info Info Info Info Info");
             builder.Warning("Warning Warning Warning Warning Warning Warning v Warning");
@@ -27,8 +26,6 @@ namespace GValidator.Validators
             builder.Info("Info Info Info Info Info Info Info Info Info Info");
             builder.Warning("Warning Warning Warning Warning Warning Warning v Warning");
             builder.Error("Error Error Error Error v Error v Error Error Error Error Error Error Error v Error v Error Error Error");
-
-            reporter.End();
 
             return Task.CompletedTask;
         }

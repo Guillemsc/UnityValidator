@@ -22,60 +22,67 @@ namespace GValidator.Validators.NotNulls
         public async Task ValidateAsync(
             IValidationBuilder validation, 
             IValidationContext context,
-            IProgressBuilder progress)
+            IProgressScope progress)
         {
-            var reporter = progress.Begin(3);
+            IProgressScope prefabProgress = progress.Step(0, 3, "Prefabs");
+            prefabProgress.Report(0f);
             
-            reporter.Report(0, "Prefabs", 0f);
             var prefabs = await context.AssetsProvider.GetAssetsAsync("t:Prefab", context.FrameSlicer);
-            
-            var prefabBuilder = reporter.Nest(0, "Prefabs");
-            var prefabReporter = prefabBuilder.Begin(prefabs.Count);
 
             for (int i = 0; i < prefabs.Count; i++)
             {
                 Object prefab = prefabs[i];
                 
-                prefabReporter.Report(i, prefab.name, 0f);
+                IProgressScope itemProgress = prefabProgress.Step(i, prefabs.Count, prefab.name);
+                itemProgress.Report(0f);
                 
                 await ValidatePrefabAsync(prefab, validation, context);
+                
+                itemProgress.Report(1f);
                 await context.FrameSlicer.TrySlice();
             }
 
-            reporter.Report(1, "ScriptableObjects", 0f);
-            var scriptableObjects = await context.AssetsProvider.GetAssetsAsync("t:ScriptableObject", context.FrameSlicer);
+            prefabProgress.Report(1f);
             
-            var soBuilder = reporter.Nest(1, "ScriptableObjects");
-            var soReporter = soBuilder.Begin(scriptableObjects.Count);
+            IProgressScope scriptableProgress = progress.Step(1, 3, "ScriptableObjects");
+            scriptableProgress.Report(0f);
+            
+            var scriptableObjects = await context.AssetsProvider.GetAssetsAsync("t:ScriptableObject", context.FrameSlicer);
 
             for (int i = 0; i < scriptableObjects.Count; i++)
             {
                 Object scriptableObject = scriptableObjects[i];
                 
-                soReporter.Report(i, scriptableObject.name, 0f);
+                IProgressScope itemProgress = scriptableProgress.Step(i, scriptableObjects.Count, scriptableObject.name);
+                itemProgress.Report(0f);
                 
                 await ValidateScriptableObjectAsync(scriptableObject, validation, context);
+                
+                itemProgress.Report(1f);
                 await context.FrameSlicer.TrySlice();
             }
 
-            reporter.Report(2, "Scenes", 0f);
+            scriptableProgress.Report(1f);
+            
+            IProgressScope scenesProgress = progress.Step(2, 3, "Scenes");
+            scenesProgress.Report(0f);
+            
             var scenes = await context.AssetsProvider.GetAssetsAsync("t:Scene", context.FrameSlicer);
-
-            var scenesBuilder = reporter.Nest(2, "Scenes");
-            var scenesReporter = scenesBuilder.Begin(scenes.Count);
             
             for (int i = 0; i < scenes.Count; i++)
             {
                 Object? scene = scenes[i];
                 
-                scenesReporter.Report(i, scene.name, 0f);
-                var sceneBuilder = scenesReporter.Nest(i, scene.name);
+                IProgressScope sceneProgress = scenesProgress.Step(i, scenes.Count, scene.name);
+                sceneProgress.Report(0f);
                 
-                await ValidateSceneAsync(scene, validation, context, sceneBuilder);
+                await ValidateSceneAsync(scene, validation, context, sceneProgress);
+                
+                sceneProgress.Report(1f);
                 await context.FrameSlicer.TrySlice();
             }
 
-            reporter.End();
+            scenesProgress.Report(1f);
         }
 
         async Task ValidatePrefabAsync(Object obj, IValidationBuilder builder, IValidationContext context)
@@ -112,7 +119,7 @@ namespace GValidator.Validators.NotNulls
             Object obj, 
             IValidationBuilder builder, 
             IValidationContext context,
-            IProgressBuilder progressBuilder)
+            IProgressScope progress)
         {
             if (obj is not SceneAsset) return;
 
@@ -128,33 +135,31 @@ namespace GValidator.Validators.NotNulls
             }
             
             builder.SetObject(obj);
-
             List<MonoBehaviour> toValidate = new();
-            
-            var rootGameObjects = scene.GetRootGameObjects();
-                
-            foreach (GameObject rootObject in rootGameObjects)
+
+            foreach (GameObject rootObject in scene.GetRootGameObjects())
             {
                 MonoBehaviour[] monoBehaviours = rootObject.GetComponentsInChildren<MonoBehaviour>(true);
-
                 toValidate.AddRange(monoBehaviours);
             }
-
-            var behaviourProgress = progressBuilder.Begin(toValidate.Count);
 
             for (int i = 0; i < toValidate.Count; i++)
             {
                 MonoBehaviour validating = toValidate[i];
-                
-                behaviourProgress.Report(i, validating.name, 0);
+                if (validating == null) continue;
+
+                IProgressScope behaviourProgress = progress.Step(i, toValidate.Count, validating.name);
+                behaviourProgress.Report(0f);
                 
                 await ValidateObjectAsync(validating, builder, context);
+                
+                behaviourProgress.Report(1f);
             }
             
             builder.ClearObject();
 
-            bool shouldClose = !alreadyLoaded && scene.IsValid() && scene.isLoaded;
-            
+            var shouldClose = !alreadyLoaded && scene.IsValid() && scene.isLoaded;
+
             if (shouldClose)
             {
                 EditorSceneManager.CloseScene(scene, true);

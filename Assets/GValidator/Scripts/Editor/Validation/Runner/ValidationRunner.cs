@@ -9,35 +9,36 @@ namespace GValidator.Validation.Runner
 {
     public sealed class ValidationRunner : IValidationRunner
     {
-        readonly IProgressNotifier _progressNotifier;
+        readonly IProgressSink _progressSink;
 
-        public ValidationRunner(IProgressNotifier progressNotifier)
+        public ValidationRunner(IProgressSink progressSink)
         {
-            _progressNotifier = progressNotifier;
+            _progressSink = progressSink;
         }
 
         public async Task<IValidationResult> RunAsync(IValidationContext validationContext)
         {
             ValidationBuilder validationBuilder = new();
-            ProgressBuilder progressBuilder = new(_progressNotifier, 0f, 1f);
+            IProgressScope progress = new ProgressScope(_progressSink);
 
-            var reporter = progressBuilder.Begin(validationContext.Validators.Count);
-
-            for (int i = 0; i < validationContext.Validators.Count; i++)
+            try
             {
-                IValidator validator = validationContext.Validators[i];
-                
-                var validatorProgress =  reporter.Nest(i, validator.GetType().Name);
-                
-                await validator.ValidateAsync(
-                    validationBuilder, 
-                    validationContext,
-                    validatorProgress);
-            }
-            
-            _progressNotifier.Finish();
+                for (int i = 0; i < validationContext.Validators.Count; i++)
+                {
+                    IValidator validator = validationContext.Validators[i];
+                    IProgressScope validatorProgress = progress.Step(i, validationContext.Validators.Count, validator.GetType().Name);
 
-            return validationBuilder.Build();
+                    validatorProgress.Report(0f);
+                    await validator.ValidateAsync(validationBuilder, validationContext, validatorProgress);
+                    validatorProgress.Report(1f);
+                }
+
+                return validationBuilder.Build();
+            }
+            finally
+            {
+                _progressSink.Clear();
+            }
         }
     }
 }

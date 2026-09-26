@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Threading.Tasks;
 using System.Linq;
@@ -108,10 +109,16 @@ namespace GValidator.Window.Sections
                 assetsProvider,
                 new FrameSlicer());
             
-            ValidationRunner validationRunner = new(CancellableProgressBarProgressNotifier.Instance);
-            var validationResult = await validationRunner.RunAsync(validationContext);
-            
-            _currentValidationProvider.Set(validationResult);
+            ValidationRunner validationRunner = new(CancellableProgressBarProgressSink.Instance);
+            try
+            {
+                var validationResult = await validationRunner.RunAsync(validationContext);
+                _currentValidationProvider.Set(validationResult);
+            }
+            catch (OperationCanceledException)
+            {
+                // Keep the existing results when the user cancels.
+            }
         }
 
         void SetSearchScopeDisplay(string scopePath, bool isFile, string? displayScope = null)

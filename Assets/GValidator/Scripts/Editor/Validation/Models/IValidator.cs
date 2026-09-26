@@ -10,6 +10,6 @@ namespace GValidator.Validation.Models
         Task ValidateAsync(
             IValidationBuilder validation, 
             IValidationContext context,
-            IProgressBuilder progress);   
+            IProgressScope progress);
     }
 }
