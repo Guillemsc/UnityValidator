@@ -215,10 +215,14 @@ namespace GValidator.Sections
                 return;
             }
 
+            string objectName = message.Object is Component component
+                ? component.GetType().Name
+                : message.Object.name;
+
             references.ObjectIcon.style.display = DisplayStyle.Flex;
-            references.ObjectName.text = message.Object.name;
+            references.ObjectName.text = objectName;
             references.ObjectName.style.color = GetObjectTextColor();
-            references.Cell.tooltip = $"Ping '{message.Object.name}' in the Editor";
+            references.Cell.tooltip = $"{objectName}\nPing '{message.Object.name}' in the Editor";
 
             var objectIcon = EditorGUIUtility.ObjectContent(
                 message.Object,
