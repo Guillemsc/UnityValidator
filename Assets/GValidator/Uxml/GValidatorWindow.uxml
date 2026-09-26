@@ -1,0 +1,39 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <ui:VisualElement name="gvalidator-window" class="gvalidator-window" style="flex-grow: 1;">
+        <uie:Toolbar name="window-toolbar" class="window-toolbar">
+            <uie:ToolbarButton name="run-all-button" text="Run All" class="unity-toolbar-button toolbar-button" />
+            <uie:ToolbarButton name="clear-results-button" text="Clear" class="unity-toolbar-button toolbar-button" />
+            <uie:ToolbarSpacer class="toolbar-spacer" style="flex-grow: 1; flex-shrink: 0; flex-basis: auto;" />
+            <ui:VisualElement name="severity-filters" class="unity-toolbar-toggle-group severity-filters" style="flex-direction: row; width: auto; min-width: 0; flex: 0 0 auto; align-items: center;">
+                <uie:ToolbarToggle name="info-toggle" text="0" tooltip="Show or hide info messages" value="true" class="unity-toolbar-toggle severity-toggle severity-toggle-info" style="width: auto; min-width: 0; flex: 0 0 auto; padding-left: 20px; padding-right: 4px; background-image: resource(&apos;console.infoicon.sml&apos;); background-size: 16px 16px; background-position-x: 4px; background-position-y: center; background-repeat: no-repeat;" />
+                <uie:ToolbarToggle name="warning-toggle" text="0" tooltip="Show or hide warnings" value="true" class="unity-toolbar-toggle severity-toggle severity-toggle-warning" style="width: auto; min-width: 0; flex: 0 0 auto; padding-left: 20px; padding-right: 4px; background-image: resource(&apos;console.warnicon.sml&apos;); background-size: 16px 16px; background-position-x: 4px; background-position-y: center; background-repeat: no-repeat;" />
+                <uie:ToolbarToggle name="error-toggle" text="0" tooltip="Show or hide errors" value="true" class="unity-toolbar-toggle severity-toggle severity-toggle-error" style="width: auto; min-width: 0; flex: 0 0 auto; padding-left: 20px; padding-right: 4px; background-image: resource(&apos;console.erroricon.sml&apos;); background-size: 16px 16px; background-position-x: 4px; background-position-y: center; background-repeat: no-repeat;" />
+            </ui:VisualElement>
+        </uie:Toolbar>
+        <ui:TwoPaneSplitView name="content-split" fixed-pane-index="0" fixed-pane-initial-dimension="280" orientation="Horizontal" class="content-split" style="flex-grow: 1; min-width: 0;">
+            <ui:VisualElement name="validator-pane" class="validator-pane" style="min-width: 180px; overflow: hidden;">
+                <uie:Toolbar>
+                    <ui:Label text="Validators" class="pane-title" style="-unity-text-align: middle-left; margin-left: 5px; margin-right: 5px;" />
+                </uie:Toolbar>
+                <ui:VisualElement class="validators-content" style="flex-grow: 1; min-width: 0; overflow: hidden; padding: 6px; padding-top: 0; padding-right: 0; padding-left: 0; padding-bottom: 0; margin-bottom: 5px; margin-top: 0;">
+                    <ui:ScrollView name="validator-list" class="validator-list" style="min-width: 0; overflow: hidden;">
+                        <ui:Label name="validator-list-empty" text="No validators discovered." class="empty-state" style="min-width: 0; flex-shrink: 1; white-space: nowrap; overflow: hidden; text-overflow: clip; margin-left: 5px; margin-right: 5px; padding-right: 0; padding-left: 0;" />
+                    </ui:ScrollView>
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="results-pane" class="results-pane" style="min-width: 0; overflow: hidden;">
+                <ui:VisualElement class="results-heading" />
+                <ui:VisualElement class="results-content" style="flex-grow: 1; min-width: 0; overflow: hidden; padding: 6px; padding-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0;">
+                    <ui:TwoPaneSplitView name="results-detail-split" view-data-key="gvalidator-results-detail-split" fixed-pane-index="1" fixed-pane-initial-dimension="166" orientation="Vertical" class="results-detail-split" style="flex-grow: 1;">
+                        <ui:MultiColumnListView name="results-list" fixed-item-height="22" virtualization-method="FixedHeight" show-alternating-row-backgrounds="ContentOnly" selection-type="Single" class="results-list" style="flex-grow: 1; min-width: 0; margin-top: 5px; margin-bottom: 5px;" />
+                        <ui:VisualElement name="detail-panel" class="detail-panel" style="margin-top: 5px; margin-bottom: 5px;">
+                            <ui:ScrollView name="detail-message-scroll" class="detail-message-scroll">
+                                <ui:Label name="detail-message-label" class="detail-message" style="min-width: 0; white-space: normal; overflow: hidden; padding-left: 0; padding-right: 0; margin-left: 5px; margin-right: 5px;" />
+                            </ui:ScrollView>
+                        </ui:VisualElement>
+                    </ui:TwoPaneSplitView>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:TwoPaneSplitView>
+    </ui:VisualElement>
+</ui:UXML>

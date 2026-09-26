@@ -1,0 +1,14 @@
+using System.Collections.Generic;
+using GValidator.Model;
+
+namespace GValidator.Validation.Result
+{
+    public interface IValidationResult
+    {
+        int InfoCount { get; }
+        int WarningCount { get; }
+        int ErrorCount { get; }
+            
+        IReadOnlyList<ValidationMessage> Messages { get; }
+    }
+}

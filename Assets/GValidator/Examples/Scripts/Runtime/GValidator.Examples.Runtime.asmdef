@@ -1,0 +1,16 @@
+{
+    "name": "GValidator.Examples.Runtime",
+    "rootNamespace": "",
+    "references": [
+        "GUID:5efa967113e1b4ff1a6196375a8a82fc"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
