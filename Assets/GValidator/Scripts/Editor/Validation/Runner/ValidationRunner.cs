@@ -34,15 +34,10 @@ namespace GValidator.Validation.Runner
 
                     validatorProgress.Report(0f);
                     validationBuilder.SetValidatorName(validatorName);
-                    try
-                    {
-                        await validator.ValidateAsync(validationBuilder, validationContext, validatorProgress);
-                    }
-                    finally
-                    {
-                        validationBuilder.ClearValidatorName();
-                    }
 
+                    await validator.ValidateAsync(validationBuilder, validationContext, validatorProgress);
+
+                    validationBuilder.ClearValidatorName();
                     validatorProgress.Report(1f);
                 }
 

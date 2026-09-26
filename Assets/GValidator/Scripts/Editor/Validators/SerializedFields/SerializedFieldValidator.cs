@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using GValidator.Validation.Builder;
 using GValidator.Validation.Context;
 using GValidator.Validation.Models;
+using GValidator.Validation.Objects;
 using GValidator.Validation.Progress;
 using GValidator.Validation.SceneManagement;
 using UnityEditor;
@@ -56,7 +57,7 @@ namespace GValidator.Validators.SerializedFields
                 }
                 else if (asset is ScriptableObject)
                 {
-                    validation.SetObject(asset);
+                    validation.SetObject(asset, ObjectPathUtility.GetPath(asset));
                     await ValidateObjectAsync(asset, validation, context);
                     validation.ClearObject();
                 }
@@ -96,15 +97,15 @@ namespace GValidator.Validators.SerializedFields
             IValidationBuilder validation,
             IValidationContext context)
         {
-            validation.SetObject(gameObject);
-
             MonoBehaviour[] behaviours = gameObject.GetComponentsInChildren<MonoBehaviour>(true);
             
             foreach (MonoBehaviour behaviour in behaviours)
             {
                 if (behaviour != null)
                 {
+                    validation.SetObject(behaviour, ObjectPathUtility.GetPath(behaviour));
                     await ValidateObjectAsync(behaviour, validation, context);
+                    validation.ClearObject();
                 }
 
                 await context.FrameSlicer.TrySlice();
@@ -126,7 +127,6 @@ namespace GValidator.Validators.SerializedFields
 
             using SceneLoadScope sceneLoadScope = new(scenePath);
             
-            validation.SetObject(sceneAsset);
             List<MonoBehaviour> behaviours = new();
             GameObject[] rootGameObjects = sceneLoadScope.Scene.GetRootGameObjects();
             foreach (GameObject root in rootGameObjects)
@@ -143,12 +143,12 @@ namespace GValidator.Validators.SerializedFields
                 IProgressScope behaviourProgress = progress.Step(index, behaviours.Count, behaviour.name);
                 behaviourProgress.Report(0f);
 
+                validation.SetObject(behaviour, ObjectPathUtility.GetPath(behaviour));
                 await ValidateObjectAsync(behaviour, validation, context);
+                validation.ClearObject();
 
                 behaviourProgress.Report(1f);
             }
-
-            validation.ClearObject();
         }
 
         async Task ValidateObjectAsync(Object obj, IValidationBuilder validation, IValidationContext context)

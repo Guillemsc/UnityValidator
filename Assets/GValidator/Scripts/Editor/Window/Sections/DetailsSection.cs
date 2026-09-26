@@ -25,7 +25,9 @@ namespace GValidator.Sections
         {
             _references.DetailMessageLabel.text = validationMessage.Message ?? string.Empty;
             _references.DetailValidatorName.text = validationMessage.ValidatorName;
-            _references.DetailObjectPath.text = GetObjectPath(validationMessage.Object);
+            _references.DetailObjectPath.text = string.IsNullOrWhiteSpace(validationMessage.ObjectPath)
+                ? GetObjectPath(validationMessage.Object)
+                : validationMessage.ObjectPath;
         }
 
         static string GetObjectPath(Object? obj)

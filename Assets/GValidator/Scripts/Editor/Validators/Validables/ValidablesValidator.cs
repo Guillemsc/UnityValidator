@@ -4,6 +4,7 @@ using GValidator.Validation.Attributes;
 using GValidator.Validation.Builder;
 using GValidator.Validation.Context;
 using GValidator.Validation.Models;
+using GValidator.Validation.Objects;
 using GValidator.Validation.Progress;
 using GValidator.Validation.SceneManagement;
 using GValidator.Validation.Validables;
@@ -152,7 +153,7 @@ namespace GValidator.Validators.Validables
             IValidationBuilder validation,
             IValidationContext context)
         {
-            validation.SetObject(target);
+            validation.SetObject(target, ObjectPathUtility.GetPath(target));
             validable.Validate(validation);
             validation.ClearObject();
             
