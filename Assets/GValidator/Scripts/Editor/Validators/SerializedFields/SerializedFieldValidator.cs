@@ -6,10 +6,9 @@ using GValidator.Validation.Builder;
 using GValidator.Validation.Context;
 using GValidator.Validation.Models;
 using GValidator.Validation.Progress;
+using GValidator.Validation.SceneManagement;
 using UnityEditor;
-using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
 namespace GValidator.Validators.SerializedFields
@@ -125,16 +124,11 @@ namespace GValidator.Validators.SerializedFields
             string scenePath = AssetDatabase.GetAssetPath(sceneAsset);
             if (string.IsNullOrWhiteSpace(scenePath)) return;
 
-            Scene scene = SceneManager.GetSceneByPath(scenePath);
-            bool wasLoaded = scene.IsValid() && scene.isLoaded;
-            if (!wasLoaded)
-            {
-                scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
-            }
-
+            using SceneLoadScope sceneLoadScope = new(scenePath);
+            
             validation.SetObject(sceneAsset);
             List<MonoBehaviour> behaviours = new();
-            GameObject[] rootGameObjects = scene.GetRootGameObjects();
+            GameObject[] rootGameObjects = sceneLoadScope.Scene.GetRootGameObjects();
             foreach (GameObject root in rootGameObjects)
             {
                 MonoBehaviour[] rootBehaviours = root.GetComponentsInChildren<MonoBehaviour>(true);
@@ -155,11 +149,6 @@ namespace GValidator.Validators.SerializedFields
             }
 
             validation.ClearObject();
-            bool shouldCloseScene = !wasLoaded && scene.IsValid() && scene.isLoaded;
-            if (shouldCloseScene)
-            {
-                EditorSceneManager.CloseScene(scene, true);
-            }
         }
 
         async Task ValidateObjectAsync(Object obj, IValidationBuilder validation, IValidationContext context)
