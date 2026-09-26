@@ -1,10 +1,13 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
+using System.Threading.Tasks;
 using GValidator.NotNulls.Attributes;
 using GValidator.Validation.Attributes;
 using GValidator.Validation.Builder;
 using GValidator.Validation.Context;
 using GValidator.Validation.Models;
+using GValidator.Validation.Progress;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -16,31 +19,66 @@ namespace GValidator.Validators.NotNulls
     [Validator("Not Null")]
     public sealed class NotNullValidator : IValidator
     {
-        public void Validate(IValidationBuilder builder, IValidationContext context)
+        public async Task ValidateAsync(
+            IValidationBuilder validation, 
+            IValidationContext context,
+            IProgressBuilder progress)
         {
-            var prefabs = context.AssetsProvider.GetAssets("t:Prefab");
+            var reporter = progress.Begin(3);
             
-            foreach (var prefab in prefabs)
+            reporter.Report(0, "Prefabs", 0f);
+            var prefabs = await context.AssetsProvider.GetAssetsAsync("t:Prefab", context.FrameSlicer);
+            
+            var prefabBuilder = reporter.Nest(0, "Prefabs");
+            var prefabReporter = prefabBuilder.Begin(prefabs.Count);
+
+            for (int i = 0; i < prefabs.Count; i++)
             {
-                ValidatePrefab(prefab, builder);
-            }
-            
-            var scriptableObjects = context.AssetsProvider.GetAssets("t:ScriptableObject");
-            
-            foreach (var scriptableObject in scriptableObjects)
-            {
-                ValidateScriptableObject(scriptableObject, builder);
+                Object prefab = prefabs[i];
+                
+                prefabReporter.Report(i, prefab.name, 0f);
+                
+                await ValidatePrefabAsync(prefab, validation, context);
+                await context.FrameSlicer.TrySlice();
             }
 
-            var scenes = context.AssetsProvider.GetAssets("t:Scene");
+            reporter.Report(1, "ScriptableObjects", 0f);
+            var scriptableObjects = await context.AssetsProvider.GetAssetsAsync("t:ScriptableObject", context.FrameSlicer);
+            
+            var soBuilder = reporter.Nest(1, "ScriptableObjects");
+            var soReporter = soBuilder.Begin(scriptableObjects.Count);
 
-            foreach (var scene in scenes)
+            for (int i = 0; i < scriptableObjects.Count; i++)
             {
-                ValidateScene(scene, builder);
+                Object scriptableObject = scriptableObjects[i];
+                
+                soReporter.Report(i, scriptableObject.name, 0f);
+                
+                await ValidateScriptableObjectAsync(scriptableObject, validation, context);
+                await context.FrameSlicer.TrySlice();
             }
+
+            reporter.Report(2, "Scenes", 0f);
+            var scenes = await context.AssetsProvider.GetAssetsAsync("t:Scene", context.FrameSlicer);
+
+            var scenesBuilder = reporter.Nest(2, "Scenes");
+            var scenesReporter = scenesBuilder.Begin(scenes.Count);
+            
+            for (int i = 0; i < scenes.Count; i++)
+            {
+                Object? scene = scenes[i];
+                
+                scenesReporter.Report(i, scene.name, 0f);
+                var sceneBuilder = scenesReporter.Nest(i, scene.name);
+                
+                await ValidateSceneAsync(scene, validation, context, sceneBuilder);
+                await context.FrameSlicer.TrySlice();
+            }
+
+            reporter.End();
         }
 
-        void ValidatePrefab(Object obj, IValidationBuilder builder)
+        async Task ValidatePrefabAsync(Object obj, IValidationBuilder builder, IValidationContext context)
         {
             if(obj is not GameObject gameObject) return;
 
@@ -50,24 +88,31 @@ namespace GValidator.Validators.NotNulls
 
             foreach (var monoBehaviour in monoBehaviours)
             {
-                ValidateObject(monoBehaviour, builder);
+                if (monoBehaviour != null)
+                {
+                    await ValidateObjectAsync(monoBehaviour, builder, context);
+                }
             }
             
             builder.ClearObject();
         }
         
-        void ValidateScriptableObject(Object obj, IValidationBuilder builder)
+        async Task ValidateScriptableObjectAsync(Object obj, IValidationBuilder builder, IValidationContext context)
         {
             if(obj is not ScriptableObject) return;
 
             builder.SetObject(obj);
             
-            ValidateObject(obj, builder);
+            await ValidateObjectAsync(obj, builder, context);
             
             builder.ClearObject();
         }
 
-        void ValidateScene(Object obj, IValidationBuilder builder)
+        async Task ValidateSceneAsync(
+            Object obj, 
+            IValidationBuilder builder, 
+            IValidationContext context,
+            IProgressBuilder progressBuilder)
         {
             if (obj is not SceneAsset) return;
 
@@ -84,18 +129,26 @@ namespace GValidator.Validators.NotNulls
             
             builder.SetObject(obj);
 
+            List<MonoBehaviour> toValidate = new();
+            
             var rootGameObjects = scene.GetRootGameObjects();
                 
             foreach (GameObject rootObject in rootGameObjects)
             {
                 MonoBehaviour[] monoBehaviours = rootObject.GetComponentsInChildren<MonoBehaviour>(true);
 
-                foreach (MonoBehaviour monoBehaviour in monoBehaviours)
-                {
-                    if (monoBehaviour == null) continue;
-                            
-                    ValidateObject(monoBehaviour, builder);
-                }
+                toValidate.AddRange(monoBehaviours);
+            }
+
+            var behaviourProgress = progressBuilder.Begin(toValidate.Count);
+
+            for (int i = 0; i < toValidate.Count; i++)
+            {
+                MonoBehaviour validating = toValidate[i];
+                
+                behaviourProgress.Report(i, validating.name, 0);
+                
+                await ValidateObjectAsync(validating, builder, context);
             }
             
             builder.ClearObject();
@@ -108,7 +161,7 @@ namespace GValidator.Validators.NotNulls
             }
         }
 
-        void ValidateObject(Object obj, IValidationBuilder builder)
+        async Task ValidateObjectAsync(Object obj, IValidationBuilder builder, IValidationContext context)
         {
             Type objectType = obj.GetType();
             SerializedObject serializedObject = new(obj);
@@ -117,15 +170,19 @@ namespace GValidator.Validators.NotNulls
             
             while (property.NextVisible(true))
             {
+                await context.FrameSlicer.TrySlice();
+
                 FieldInfo? field = GetField(objectType, property.propertyPath);
                 
                 var hasNotNullAttribute = field?.IsDefined(typeof(NotNullAttribute), inherit: true) == true;
                 if (!hasNotNullAttribute) continue;
 
                 var isNull = IsNull(property);
-                if(!isNull) continue;
                 
-                builder.Error($"{property.propertyPath} is null");
+                if (isNull)
+                {
+                    builder.Error($"{property.propertyPath} is null");
+                }
             }
         }
 

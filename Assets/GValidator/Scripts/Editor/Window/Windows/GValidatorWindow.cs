@@ -10,6 +10,7 @@ using GValidator.Window.Sections;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
+using Object = UnityEngine.Object;
 
 namespace GValidator.Windows
 {
@@ -21,13 +22,47 @@ namespace GValidator.Windows
         [SerializeField] VisualTreeAsset? _validatorEntryAsset;
 
         readonly GValidatorWindowReferences _references = new();
+        ToolbarSection? _toolbarSection;
+        string? _pendingScopePath;
+        bool _pendingScopeIsFile;
 
         [MenuItem("Tools/GValidator/Validation Window")]
         public static void Open()
         {
             var window = GetWindow<GValidatorWindow>();
-            window.titleContent = new GUIContent("GValidator");
+            window.SetWindowTitle();
             window.minSize = new Vector2(640, 360);
+        }
+
+        public static void OpenAndValidateAsset(Object asset)
+        {
+            if (asset == null) return;
+
+            OpenAndValidateScope(AssetDatabase.GetAssetPath(asset), true);
+        }
+
+        public static void OpenAndValidateFolder(string folderPath)
+        {
+            if (string.IsNullOrWhiteSpace(folderPath) || !AssetDatabase.IsValidFolder(folderPath)) return;
+
+            OpenAndValidateScope(folderPath, false);
+        }
+
+        static void OpenAndValidateScope(string scopePath, bool isFile)
+        {
+            GValidatorWindow window = GetWindow<GValidatorWindow>();
+            window.SetWindowTitle();
+            window.minSize = new Vector2(640, 360);
+            window._pendingScopePath = scopePath;
+            window._pendingScopeIsFile = isFile;
+            window.Show();
+            window.Focus();
+            window.TryRunPendingAssetValidation();
+        }
+
+        void SetWindowTitle()
+        {
+            titleContent = new GUIContent("GValidator");
         }
 
         void CreateGUI()
@@ -66,9 +101,8 @@ namespace GValidator.Windows
             assetSources.AddRange(SceneAssetsSourceFactory.CreateAll());
             SelectedAssetsSourcesProvider selectedAssetsSourcesProvider = new(assetSources);
             
-            ValidatorsProvider validatorsProvider = new();
             CurrentValidationProvider currentValidationProvider = new();
-            SelectedValidatorsProvider selectedValidatorsProvider = new(validatorsProvider);
+            SelectedValidatorsProvider selectedValidatorsProvider = new(ValidatorsFactory.CreateAll());
             SelectedValidationMessageProvider selectedValidationMessageProvider = new();
 
             SourcesSection sourcesSection = new(
@@ -78,7 +112,6 @@ namespace GValidator.Windows
             ValidatorsSection validatorsSection = new(
                 _references,
                 _validatorEntryAsset,
-                validatorsProvider,
                 selectedValidatorsProvider);
             
             ValidationMessagesSection messagesSection = new(
@@ -88,7 +121,7 @@ namespace GValidator.Windows
                 currentValidationProvider,
                 selectedValidationMessageProvider);
             
-            ToolbarSection toolbarSection = new(
+            _toolbarSection = new ToolbarSection(
                 _references,
                 selectedValidatorsProvider,
                 currentValidationProvider,
@@ -97,6 +130,18 @@ namespace GValidator.Windows
             DetailsSection detailsSection = new(
                 _references,
                 selectedValidationMessageProvider);
+
+            TryRunPendingAssetValidation();
+        }
+
+        async void TryRunPendingAssetValidation()
+        {
+            if (_toolbarSection == null || string.IsNullOrWhiteSpace(_pendingScopePath)) return;
+
+            string scopePath = _pendingScopePath!;
+            bool isFile = _pendingScopeIsFile;
+            _pendingScopePath = null;
+            await _toolbarSection.RunScopeValidationAsync(scopePath, isFile);
         }
     }   
 }

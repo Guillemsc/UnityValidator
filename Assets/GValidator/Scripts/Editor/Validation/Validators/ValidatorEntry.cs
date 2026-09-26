@@ -1,5 +1,3 @@
-using GValidator.Validators;
-
 namespace GValidator.Validation.Models
 {
     public sealed class ValidatorEntry

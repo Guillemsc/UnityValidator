@@ -1,6 +1,9 @@
+using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using GValidator.Validation.AssetSources;
-using UnityEngine;
+using GValidator.Validation.FrameSlicing;
+using Object = UnityEngine.Object;
 
 namespace GValidator.Validation.Assets
 {
@@ -8,26 +11,45 @@ namespace GValidator.Validation.Assets
     {
         readonly IReadOnlyList<IAssetsSource> _assetsSources;
         readonly string[] _searchInFolders;
+        readonly string? _targetAssetPath;
 
         public AssetsProvider(
             IReadOnlyList<IAssetsSource> assetsSources,
-            string[] searchInFolders)
+            string[] searchInFolders,
+            string? targetAssetPath = null)
         {
             _assetsSources = assetsSources;
             _searchInFolders = searchInFolders;
+            _targetAssetPath = targetAssetPath;
         }
 
-        public IEnumerable<Object> GetAssets(string filter)
+        public async Task<List<Object>> GetAssetsAsync(string filter, IFrameSlicer frameSlicer)
         {
+            List<Object> ret = new();
+
             foreach (var source in _assetsSources)
             {
-                var assets = source.GetAssets(filter, _searchInFolders);
+                var assets = await source.GetAssetsAsync(
+                    filter,
+                    _searchInFolders,
+                    frameSlicer);
 
                 foreach (var asset in assets)
                 {
-                    yield return asset;
+                    await frameSlicer.TrySlice();
+                    
+                    if (!string.IsNullOrWhiteSpace(_targetAssetPath))
+                    {
+                        var path = UnityEditor.AssetDatabase.GetAssetPath(asset);
+                        var isFile = string.Equals(path, _targetAssetPath, StringComparison.OrdinalIgnoreCase);
+                        if(!isFile) continue;
+                    }
+
+                    ret.Add(asset);
                 }
             }
+
+            return ret;
         }
     }
 }

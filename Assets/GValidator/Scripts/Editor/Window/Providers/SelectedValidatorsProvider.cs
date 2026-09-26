@@ -6,16 +6,45 @@ namespace GValidator.Providers
 {
     public sealed class SelectedValidatorsProvider
     {
-        readonly IValidatorsProvider _validatorsProvider;
+        public IReadOnlyList<ValidatorEntry> All { get; }
+        
+        readonly HashSet<ValidatorEntry> _disabledValidators = new();
 
-        public SelectedValidatorsProvider(IValidatorsProvider validatorsProvider)
+        public SelectedValidatorsProvider(IReadOnlyList<ValidatorEntry> allValidators)
         {
-            _validatorsProvider = validatorsProvider;
+            All = allValidators;
         }
 
-        public IReadOnlyList<ValidatorEntry> Get()
+        public IReadOnlyList<ValidatorEntry> GetSelected()
         {
-            return _validatorsProvider.GetValidators();
+            List<ValidatorEntry> selected = new();
+
+            foreach (var entry in All)
+            {
+                if (!_disabledValidators.Contains(entry))
+                {
+                    selected.Add(entry);
+                }
+            }
+
+            return selected;
+        }
+        
+        public bool IsSelected(ValidatorEntry source)
+        {
+            return !_disabledValidators.Contains(source);
+        }
+
+        public void SetSelected(ValidatorEntry source, bool isSelected)
+        {
+            if (isSelected)
+            {
+                _disabledValidators.Remove(source);
+            }
+            else
+            {
+                _disabledValidators.Add(source);
+            }
         }
     }
 }

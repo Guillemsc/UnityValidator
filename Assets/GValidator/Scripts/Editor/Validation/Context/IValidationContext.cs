@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using GValidator.Validation.Assets;
+using GValidator.Validation.FrameSlicing;
 using GValidator.Validation.Models;
 
 namespace GValidator.Validation.Context
@@ -8,5 +9,6 @@ namespace GValidator.Validation.Context
     {
         IReadOnlyList<IValidator> Validators { get; }
         IAssetsProvider AssetsProvider { get; }
+        IFrameSlicer FrameSlicer { get; }
     }
 }

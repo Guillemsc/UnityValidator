@@ -12,18 +12,15 @@ namespace GValidator.Sections
     {
         readonly GValidatorWindowReferences _references;
         readonly VisualTreeAsset _validatorEntryAsset;
-        readonly IValidatorsProvider _validatorsProvider;
         readonly SelectedValidatorsProvider _selectedValidatorsProvider;
 
         public ValidatorsSection(
             GValidatorWindowReferences references,
             VisualTreeAsset validatorEntryAsset,
-            IValidatorsProvider validatorsProvider,
             SelectedValidatorsProvider selectedValidatorsProvider)
         {
             _references = references;
             _validatorEntryAsset = validatorEntryAsset;
-            _validatorsProvider = validatorsProvider;
             _selectedValidatorsProvider = selectedValidatorsProvider;
 
             SetupValidatorsList();
@@ -31,7 +28,7 @@ namespace GValidator.Sections
 
         void SetupValidatorsList()
         {
-            var validators = _validatorsProvider.GetValidators();
+            var validators = _selectedValidatorsProvider.All;
             _references.ValidatorList.Clear();
 
             if (validators.Count == 0)
@@ -51,6 +48,9 @@ namespace GValidator.Sections
 
                 entry.Name.text = validator.Name;
                 entry.Row.tooltip = validator.Name;
+                entry.Toggle.value = _selectedValidatorsProvider.IsSelected(validator);
+                entry.Toggle.RegisterValueChangedCallback(evt =>
+                    _selectedValidatorsProvider.SetSelected(validator, evt.newValue));
 
                 if (index % 2 == 1)
                 {

@@ -3,19 +3,14 @@ using System.Collections.Generic;
 using System.Reflection;
 using GValidator.Validation.Attributes;
 using GValidator.Validation.Models;
-using GValidator.Validators;
 
 namespace GValidator.Validation.Providers
 {
-    public sealed class ValidatorsProvider : IValidatorsProvider
+    public static class ValidatorsFactory
     {
-        List<ValidatorEntry>? _validators;
-        
-        public IReadOnlyList<ValidatorEntry> GetValidators()
+        public static IReadOnlyList<ValidatorEntry> CreateAll()
         {
-            if (_validators != null) return _validators;
-            
-            _validators = new List<ValidatorEntry>();
+            List<ValidatorEntry> validators = new();
                 
             Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
 
@@ -36,11 +31,11 @@ namespace GValidator.Validation.Providers
                     string name = attribute?.Name ?? type.Name;
                         
                     ValidatorEntry entry = new(validator, name);
-                    _validators.Add(entry);
+                    validators.Add(entry);
                 }
             }
 
-            return _validators;
+            return validators;
         }
         
         static bool IsConcreteValidator(Type? type)

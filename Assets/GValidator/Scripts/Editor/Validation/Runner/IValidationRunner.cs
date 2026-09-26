@@ -1,13 +1,11 @@
-using System.Collections.Generic;
+using System.Threading.Tasks;
 using GValidator.Validation.Context;
-using GValidator.Validation.Models;
 using GValidator.Validation.Result;
-using GValidator.Validators;
 
 namespace GValidator.Validation.Runner
 {
     public interface IValidationRunner
     {
-        IValidationResult Run(IValidationContext validationContext);
+        Task<IValidationResult> RunAsync(IValidationContext validationContext);
     }
 }

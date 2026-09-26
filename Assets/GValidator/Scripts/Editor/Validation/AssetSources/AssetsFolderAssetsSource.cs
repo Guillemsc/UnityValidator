@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using GValidator.Validation.FrameSlicing;
 using UnityEditor;
 using UnityEngine;
 
@@ -12,12 +14,19 @@ namespace GValidator.Validation.AssetSources
         
         AssetsFolderAssetsSource() {}
 
-        public IEnumerable<Object> GetAssets(string filter, string[] searchInFolders)
+        public async Task<List<Object>> GetAssetsAsync(
+            string filter, 
+            string[] searchInFolders,
+            IFrameSlicer frameSlicer)
         {
+            List<Object> ret = new();
+            
             string[] assetGuids = AssetDatabase.FindAssets(filter, searchInFolders);
             
             foreach (string guid in assetGuids)
             {
+                await frameSlicer.TrySlice();
+                
                 string path = AssetDatabase.GUIDToAssetPath(guid);
                 if(string.IsNullOrWhiteSpace(path)) continue;
                 
@@ -25,8 +34,10 @@ namespace GValidator.Validation.AssetSources
                 if (asset == null) continue;
                 if(asset is SceneAsset) continue;
                 
-                yield return asset;
+                ret.Add(asset);
             }
+
+            return ret;
         }
     }
 }

@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using GValidator.Validation.FrameSlicing;
 using UnityEngine;
 
 namespace GValidator.Validation.AssetSources
@@ -7,6 +9,9 @@ namespace GValidator.Validation.AssetSources
     {
         string Name { get; }
         
-        IEnumerable<Object> GetAssets(string filter, string[] searchInFolders);
+        Task<List<Object>> GetAssetsAsync(
+            string filter, 
+            string[] searchInFolders,
+            IFrameSlicer frameSlicer);
     }
 }
