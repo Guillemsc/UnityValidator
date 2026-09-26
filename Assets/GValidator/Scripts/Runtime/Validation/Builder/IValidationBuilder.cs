@@ -4,6 +4,8 @@ namespace GValidator.Validation.Builder
 {
     public interface IValidationBuilder
     {
+        void SetValidatorName(string validatorName);
+        void ClearValidatorName();
         void SetObject(Object obj);
         void ClearObject();
 

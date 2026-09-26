@@ -1,6 +1,8 @@
+using System.Reflection;
 using System.Threading.Tasks;
 using GValidator.Validation.Builder;
 using GValidator.Validation.Context;
+using GValidator.Validation.Attributes;
 using GValidator.Validation.Models;
 using GValidator.Validation.Progress;
 using GValidator.Validation.Result;
@@ -27,9 +29,20 @@ namespace GValidator.Validation.Runner
                 {
                     IValidator validator = validationContext.Validators[i];
                     IProgressScope validatorProgress = progress.Step(i, validationContext.Validators.Count, validator.GetType().Name);
+                    ValidatorAttribute? validatorAttribute = validator.GetType().GetCustomAttribute<ValidatorAttribute>();
+                    string validatorName = validatorAttribute?.Name ?? validator.GetType().Name;
 
                     validatorProgress.Report(0f);
-                    await validator.ValidateAsync(validationBuilder, validationContext, validatorProgress);
+                    validationBuilder.SetValidatorName(validatorName);
+                    try
+                    {
+                        await validator.ValidateAsync(validationBuilder, validationContext, validatorProgress);
+                    }
+                    finally
+                    {
+                        validationBuilder.ClearValidatorName();
+                    }
+
                     validatorProgress.Report(1f);
                 }
 

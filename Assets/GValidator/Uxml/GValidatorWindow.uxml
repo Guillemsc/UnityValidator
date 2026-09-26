@@ -45,9 +45,19 @@
                     <ui:TwoPaneSplitView name="results-detail-split" view-data-key="gvalidator-results-detail-split" fixed-pane-index="1" fixed-pane-initial-dimension="166" orientation="Vertical" class="results-detail-split" style="flex-grow: 1;">
                         <ui:MultiColumnListView name="results-list" fixed-item-height="22" virtualization-method="FixedHeight" show-alternating-row-backgrounds="ContentOnly" selection-type="Single" class="results-list" style="flex-grow: 1; min-width: 0; margin-top: 0; margin-bottom: 5px;"/>
                         <ui:VisualElement name="detail-panel" class="detail-panel" style="margin-top: 5px; margin-bottom: 5px;">
-                            <ui:ScrollView name="detail-message-scroll" class="detail-message-scroll">
-                                <ui:Label name="detail-message-label" class="detail-message" style="min-width: 0; white-space: normal; overflow: hidden; padding-left: 0; padding-right: 0; margin-left: 5px; margin-right: 5px;"/>
-                            </ui:ScrollView>
+                            <ui:TwoPaneSplitView name="detail-content-split" view-data-key="gvalidator-detail-content-split" fixed-pane-index="1" fixed-pane-initial-dimension="250" orientation="Horizontal" style="flex-grow: 1; min-width: 0;">
+                                <ui:ScrollView name="detail-message-scroll" class="detail-message-scroll">
+                                    <ui:Label name="detail-message-label" class="detail-message" style="min-width: 0; white-space: normal; overflow: hidden; padding-left: 0; padding-right: 0; margin-left: 5px; margin-right: 5px;"/>
+                                </ui:ScrollView>
+                                <ui:ScrollView name="detail-metadata-scroll" style="min-width: 0;">
+                                    <ui:VisualElement name="detail-metadata-panel" style="padding-left: 8px; padding-right: 8px; padding-top: 4px;">
+                                        <ui:Label text="Validator" style="-unity-font-style: bold; margin-bottom: 2px;"/>
+                                        <ui:Label name="detail-validator-name" text="—" style="white-space: normal; margin-bottom: 8px;"/>
+                                        <ui:Label text="Object Path" style="-unity-font-style: bold; margin-bottom: 2px;"/>
+                                        <ui:Label name="detail-object-path" text="—" style="white-space: normal;"/>
+                                    </ui:VisualElement>
+                                </ui:ScrollView>
+                            </ui:TwoPaneSplitView>
                         </ui:VisualElement>
                     </ui:TwoPaneSplitView>
                 </ui:VisualElement>

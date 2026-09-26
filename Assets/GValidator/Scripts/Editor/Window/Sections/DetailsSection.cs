@@ -1,6 +1,8 @@
 using GValidator.Models;
 using GValidator.Providers;
 using GValidator.Validation.Messages;
+using UnityEditor;
+using UnityEngine;
 
 namespace GValidator.Sections
 {
@@ -22,6 +24,39 @@ namespace GValidator.Sections
         void OnValidationMessageChanged(ValidationMessage validationMessage)
         {
             _references.DetailMessageLabel.text = validationMessage.Message ?? string.Empty;
+            _references.DetailValidatorName.text = validationMessage.ValidatorName;
+            _references.DetailObjectPath.text = GetObjectPath(validationMessage.Object);
+        }
+
+        static string GetObjectPath(Object? obj)
+        {
+            if (obj == null)
+            {
+                return "—";
+            }
+
+            GameObject? gameObject = obj switch
+            {
+                GameObject target => target,
+                Component component => component.gameObject,
+                _ => null
+            };
+
+            if (gameObject != null && gameObject.scene.IsValid() && !string.IsNullOrEmpty(gameObject.scene.path))
+            {
+                string hierarchyPath = gameObject.name;
+                Transform? parent = gameObject.transform.parent;
+                while (parent != null)
+                {
+                    hierarchyPath = $"{parent.name}/{hierarchyPath}";
+                    parent = parent.parent;
+                }
+
+                return $"{gameObject.scene.path}/{hierarchyPath}";
+            }
+
+            string assetPath = AssetDatabase.GetAssetPath(obj);
+            return string.IsNullOrEmpty(assetPath) ? "—" : assetPath;
         }
     }
 }

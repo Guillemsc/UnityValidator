@@ -32,6 +32,8 @@ namespace GValidator.Models
         public VisualElement DetailPanel { get; private set; } = null!;
         public ScrollView DetailMessageScroll { get; private set; } = null!;
         public Label DetailMessageLabel { get; private set; } = null!;
+        public Label DetailValidatorName { get; private set; } = null!;
+        public Label DetailObjectPath { get; private set; } = null!;
         
         public void Gather(VisualElement root)
         {
@@ -61,6 +63,8 @@ namespace GValidator.Models
             DetailPanel = Get<VisualElement>(root, "detail-panel");
             DetailMessageScroll = Get<ScrollView>(root, "detail-message-scroll");
             DetailMessageLabel = Get<Label>(root, "detail-message-label");
+            DetailValidatorName = Get<Label>(root, "detail-validator-name");
+            DetailObjectPath = Get<Label>(root, "detail-object-path");
         }
 
         static T Get<T>(VisualElement root, string name) where T : VisualElement
