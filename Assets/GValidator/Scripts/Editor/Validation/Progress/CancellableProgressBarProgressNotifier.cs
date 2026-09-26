@@ -4,7 +4,12 @@ namespace GValidator.Validation.Progress
 {
     public sealed class CancellableProgressBarProgressNotifier : IProgressNotifier
     {
-        public static readonly CancellableProgressBarProgressNotifier  Instance = new ();
+        public static readonly CancellableProgressBarProgressNotifier Instance = new ();
+
+        static CancellableProgressBarProgressNotifier()
+        {
+            AssemblyReloadEvents.beforeAssemblyReload += Instance.Finish;
+        }
         
         CancellableProgressBarProgressNotifier() {}
         
