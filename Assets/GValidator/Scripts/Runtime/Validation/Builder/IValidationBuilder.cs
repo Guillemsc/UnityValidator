@@ -6,7 +6,7 @@ namespace GValidator.Validation.Builder
     {
         void SetObject(Object obj);
         void ClearObject();
-        
+
         void Error(string message);
         void Warning(string message);
         void Info(string message);

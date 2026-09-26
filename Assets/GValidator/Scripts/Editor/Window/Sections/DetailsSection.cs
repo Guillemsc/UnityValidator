@@ -1,6 +1,6 @@
-using GValidator.Model;
 using GValidator.Models;
 using GValidator.Providers;
+using GValidator.Validation.Messages;
 
 namespace GValidator.Sections
 {

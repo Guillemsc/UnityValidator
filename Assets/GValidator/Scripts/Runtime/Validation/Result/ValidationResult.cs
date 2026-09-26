@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using GValidator.Model;
+using GValidator.Validation.Messages;
 
 namespace GValidator.Validation.Result
 {
@@ -8,12 +8,11 @@ namespace GValidator.Validation.Result
         public int InfoCount { get; }
         public int WarningCount { get; }
         public int ErrorCount { get; }
-        
         public IReadOnlyList<ValidationMessage> Messages { get; }
-        
+
         public ValidationResult(
-            IReadOnlyList<ValidationMessage> messages, 
-            int infoCount, 
+            IReadOnlyList<ValidationMessage> messages,
+            int infoCount,
             int warningCount,
             int errorCount)
         {

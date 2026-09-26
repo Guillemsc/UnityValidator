@@ -1,5 +1,5 @@
 using System;
-using GValidator.Model;
+using GValidator.Validation.Messages;
 
 namespace GValidator.Providers
 {

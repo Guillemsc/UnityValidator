@@ -1,4 +1,4 @@
-using GValidator.Model;
+using GValidator.Validation.Messages;
 using UnityEditor;
 using UnityEngine;
 

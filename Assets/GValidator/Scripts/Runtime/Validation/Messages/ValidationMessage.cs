@@ -1,7 +1,6 @@
-
 using UnityEngine;
 
-namespace GValidator.Model
+namespace GValidator.Validation.Messages
 {
     public readonly struct ValidationMessage
     {
