@@ -19,15 +19,26 @@ namespace GValidator.Sections
             _selectedValidationMessageProvider = selectedValidationMessageProvider;
 
             selectedValidationMessageProvider.OnValidationMessageChanged += OnValidationMessageChanged;
+            selectedValidationMessageProvider.OnValidationMessageCleared += OnValidationMessageCleared;
         }
 
         void OnValidationMessageChanged(ValidationMessage validationMessage)
         {
             _references.DetailMessageLabel.text = validationMessage.Message ?? string.Empty;
             _references.DetailValidatorName.text = validationMessage.ValidatorName;
-            _references.DetailObjectPath.text = string.IsNullOrWhiteSpace(validationMessage.ObjectPath)
+            string objectPath = string.IsNullOrWhiteSpace(validationMessage.ObjectPath)
                 ? GetObjectPath(validationMessage.Object)
-                : validationMessage.ObjectPath;
+                : validationMessage.ObjectPath!;
+            _references.DetailObjectPath.text = objectPath;
+            _references.DetailObjectPath.tooltip = objectPath;
+        }
+
+        void OnValidationMessageCleared()
+        {
+            _references.DetailMessageLabel.text = string.Empty;
+            _references.DetailValidatorName.text = string.Empty;
+            _references.DetailObjectPath.text = string.Empty;
+            _references.DetailObjectPath.tooltip = string.Empty;
         }
 
         static string GetObjectPath(Object? obj)

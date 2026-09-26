@@ -106,6 +106,7 @@ namespace GValidator.Sections
             _allMessages.Clear();
             _messagesBind.Clear();
             _references.ResultsList.ClearSelection();
+            _selectedValidationMessageProvider.Clear();
             _references.ResultsList.RefreshItems();
         }
 
@@ -137,6 +138,7 @@ namespace GValidator.Sections
             }
 
             _references.ResultsList.ClearSelection();
+            _selectedValidationMessageProvider.Clear();
             _references.ResultsList.RefreshItems();
         }
 

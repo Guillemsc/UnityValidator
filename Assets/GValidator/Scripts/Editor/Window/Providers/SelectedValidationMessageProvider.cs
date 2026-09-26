@@ -6,6 +6,7 @@ namespace GValidator.Providers
     public sealed class SelectedValidationMessageProvider
     {
         public event Action<ValidationMessage>? OnValidationMessageChanged;
+        public event Action? OnValidationMessageCleared;
         
         ValidationMessage? _validationMessage;
 
@@ -13,6 +14,12 @@ namespace GValidator.Providers
         {
             _validationMessage = validationMessage;
             OnValidationMessageChanged?.Invoke(validationMessage);
+        }
+
+        public void Clear()
+        {
+            _validationMessage = null;
+            OnValidationMessageCleared?.Invoke();
         }
     }
 }

@@ -28,7 +28,7 @@ description: Follow this Unity project's C# style and coding rules when creating
   ```
 
 - **Do not add `try`/`catch` blocks by default.** Let exceptions propagate unless there is a specific reason to handle them, such as recovering from a known expected failure, adding useful context at an API boundary, or translating an exception into a defined result. Catch only the exception types that can be handled meaningfully; avoid blanket catches used only to suppress errors. Use `finally` when cleanup must happen regardless of success or failure.
-- **Extract complex conditions before `if` statements.** When a condition combines multiple checks or is otherwise difficult to scan, calculate it into a clearly named `bool` local, then branch on that local.
+- **Break complex conditions and conditional expressions into named booleans.** Evaluate each meaningful check separately, combine those booleans into a clearly named final condition, then use the final value in `if`/ternary logic. Avoid embedding multiple method calls or checks inside one condition or ternary.
 
   ```csharp
   bool shouldCloseScene = !wasLoaded && scene.IsValid() && scene.isLoaded;
@@ -36,6 +36,13 @@ description: Follow this Unity project's C# style and coding rules when creating
   {
       EditorSceneManager.CloseScene(scene, true);
   }
+
+  bool sceneIsValid = gameObject.scene.IsValid();
+  bool sceneHasPath = !string.IsNullOrEmpty(gameObject.scene.path);
+  bool useScenePath = sceneIsValid && sceneHasPath;
+  string basePath = useScenePath
+      ? gameObject.scene.path
+      : AssetDatabase.GetAssetPath(gameObject);
   ```
 
 - **Separate distinct logical concerns with blank lines throughout the code.** Apply this in methods and control-flow blocks: visually group related statements and separate phases such as input retrieval, setup, the main operation, result handling, and cleanup/reporting. This applies to all code, not only loops. Do not put a blank line between every statement; use one where the code moves to a different concern. For example:

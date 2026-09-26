@@ -21,7 +21,10 @@ namespace GValidator.Validation.Objects
                 return AssetDatabase.GetAssetPath(obj);
             }
 
-            string basePath = gameObject.scene.IsValid() && !string.IsNullOrEmpty(gameObject.scene.path)
+            bool sceneIsValid = gameObject.scene.IsValid();
+            bool sceneHasPath = !string.IsNullOrEmpty(gameObject.scene.path);
+            bool useScenePath = sceneIsValid && sceneHasPath;
+            string basePath = useScenePath
                 ? gameObject.scene.path
                 : AssetDatabase.GetAssetPath(gameObject);
 
