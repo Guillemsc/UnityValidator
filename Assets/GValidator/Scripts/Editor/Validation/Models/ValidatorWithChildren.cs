@@ -60,6 +60,13 @@ namespace GValidator.Validation.Models
             DisabledChildren = GetValidators(children);
         }
 
+        public void SetChildren(IReadOnlyList<ValidatorEntry> children)
+        {
+            Children = children;
+            ChildValidators = GetValidators(children);
+            DisabledChildren = Array.Empty<TChild>();
+        }
+
         static IReadOnlyList<TChild> GetValidators(IReadOnlyList<ValidatorEntry> entries)
         {
             List<TChild> validators = new();

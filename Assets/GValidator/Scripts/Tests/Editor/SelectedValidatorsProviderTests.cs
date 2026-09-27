@@ -21,6 +21,7 @@ namespace GValidator.Tests
             ValidatorEntry second = new(secondValidator, "Second");
             ValidatorEntry standalone = new(standaloneValidator, "Standalone");
             TestParentValidator parentValidator = new();
+            parentValidator.SetChildren(new[] { first, second });
             ValidatorEntry parent = new(parentValidator, "Assets");
             SelectedValidatorsProvider provider = new(new[] { parent, standalone });
 
@@ -50,7 +51,9 @@ namespace GValidator.Tests
             IValidatorWithChildren nestedValidator = Substitute.For<IValidatorWithChildren>();
             IValidatorWithChildren rootValidator = Substitute.For<IValidatorWithChildren>();
             ValidatorEntry leaf = new(leafValidator, "Leaf");
+            nestedValidator.Children.Returns(new[] { leaf });
             ValidatorEntry nested = new(nestedValidator, "Nested");
+            rootValidator.Children.Returns(new[] { nested });
             ValidatorEntry root = new(rootValidator, "Root");
             SelectedValidatorsProvider provider = new(new[] { root });
 
@@ -75,13 +78,14 @@ namespace GValidator.Tests
             IAssetValidator secondValidator = Substitute.For<IAssetValidator>();
             ValidatorEntry first = new(firstValidator, "First");
             ValidatorEntry second = new(secondValidator, "Second");
+            parentValidator.Children.Returns(new[] { first, second });
             ValidatorEntry parent = new(parentValidator, "Parent");
             SelectedValidatorsProvider provider = new(new[] { parent });
 
             provider.GetRunnableValidators();
 
             parentValidator.Received(1).SetDisabledChildren(
-                Arg.Is<IReadOnlyList<ValidatorEntry>>(children => children.Count == 2));
+                Arg.Is<IReadOnlyList<ValidatorEntry>>(children => children.Count == 0));
 
             provider.SetSelected(second, false);
             IReadOnlyList<IValidator> runnable = provider.GetRunnableValidators();
@@ -102,6 +106,7 @@ namespace GValidator.Tests
             ValidatorEntry first = new(firstValidator, "First");
             ValidatorEntry second = new(secondValidator, "Second");
             TestParentValidator validator = new();
+            validator.SetChildren(new[] { first, second });
 
             validator.SetDisabledChildren(new[] { second });
 
