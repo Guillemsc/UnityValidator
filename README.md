@@ -73,7 +73,7 @@ The batch-mode entry point is:
 GValidator.Ci.GValidatorCi.Run
 ```
 
-The process logs the JUnit XML to Unity's output, writes it to `gvalidator-results.xml`, and exits with code `1` when errors are found and `0` when validation passes. Warnings do not fail CI by default; change `FailOnWarning` in `GValidatorCi` if warnings should fail the build.
+The process logs the JUnit XML to Unity's output, writes it to `gvalidator-results.xml`, and exits with code `1` when errors are found and `0` when validation passes. Each report entry includes the failing object's asset and hierarchy path. Warnings do not fail CI by default; change `FailOnWarning` in `GValidatorCi` if warnings should fail the build.
 
 For GitHub Actions, the repository includes `.github/workflows/gvalidator.yml`, which runs the CI validation and publishes the JUnit result as a check and an artifact. It requires the same Unity activation secrets as the Unity test runner.
 
