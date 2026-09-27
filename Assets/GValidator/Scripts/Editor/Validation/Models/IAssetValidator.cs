@@ -5,7 +5,7 @@ using Object = UnityEngine.Object;
 
 namespace GValidator.Validation.Models
 {
-    public interface IAssetValidator
+    public interface IAssetValidator : IValidatorNode
     {
         bool CanValidate(Object asset);
         Task ValidateAsync(Object asset, IValidationBuilder validation, IValidationContext context);

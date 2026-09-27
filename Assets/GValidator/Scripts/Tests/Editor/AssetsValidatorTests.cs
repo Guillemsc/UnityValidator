@@ -45,7 +45,12 @@ namespace GValidator.Tests
 
             IAssetValidator nonMatching = Substitute.For<IAssetValidator>();
             nonMatching.CanValidate(asset).Returns(false);
-            AssetsValidator dispatcher = new(new[] { matching, nonMatching });
+            AssetsValidator dispatcher = new();
+            dispatcher.SetChildren(new[]
+            {
+                new ValidatorEntry(matching, "Matching"),
+                new ValidatorEntry(nonMatching, "Non-matching")
+            });
             ValidationBuilder builder = new();
             IProgressScope progress = Substitute.For<IProgressScope>();
             progress.Step(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<string>()).Returns(progress);
@@ -63,14 +68,61 @@ namespace GValidator.Tests
         }
 
         [Test]
+        public async Task ValidateAsync_SkipsDisabledChildren()
+        {
+            TestAsset asset = ScriptableObject.CreateInstance<TestAsset>();
+            IAssetsProvider assetsProvider = Substitute.For<IAssetsProvider>();
+            assetsProvider.GetAssetsAsync(string.Empty).Returns(Task.FromResult(new List<Object> { asset }));
+
+            IFrameSlicer frameSlicer = Substitute.For<IFrameSlicer>();
+            frameSlicer.TrySlice().Returns(Task.CompletedTask);
+            IAssetValidator enabled = Substitute.For<IAssetValidator>();
+            IAssetValidator disabled = Substitute.For<IAssetValidator>();
+            enabled.CanValidate(asset).Returns(true);
+            disabled.CanValidate(asset).Returns(true);
+            enabled.ValidateAsync(asset, Arg.Any<IValidationBuilder>(), Arg.Any<IValidationContext>())
+                .Returns(Task.CompletedTask);
+
+            IValidationContext context = Substitute.For<IValidationContext>();
+            context.AssetsProvider.Returns(assetsProvider);
+            context.FrameSlicer.Returns(frameSlicer);
+
+            AssetsValidator dispatcher = new();
+            ValidatorEntry enabledEntry = new(enabled, "Enabled");
+            dispatcher.SetChildren(new[] { enabledEntry, new ValidatorEntry(disabled, "Disabled") });
+            dispatcher.SetEnabledChildren(new[] { enabledEntry });
+            IProgressScope progress = Substitute.For<IProgressScope>();
+            progress.Step(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<string>()).Returns(progress);
+
+            await dispatcher.ValidateAsync(new ValidationBuilder(), context, progress);
+
+            await enabled.Received(1).ValidateAsync(asset, Arg.Any<IValidationBuilder>(), context);
+            await disabled.DidNotReceive().ValidateAsync(asset, Arg.Any<IValidationBuilder>(), context);
+            Object.DestroyImmediate(asset);
+        }
+
+        [Test]
         public void ValidatorsFactory_DiscoversBuiltInAssetValidators()
         {
             IReadOnlyList<ValidatorEntry> entries = ValidatorsFactory.CreateAll();
 
-            Assert.That(entries, Has.Some.Matches<ValidatorEntry>(entry =>
-                entry.AssetValidator is NotNullValidator && entry.Validator == null));
-            Assert.That(entries, Has.Some.Matches<ValidatorEntry>(entry =>
-                entry.AssetValidator is MissingScriptsValidator && entry.Validator == null));
+            ValidatorEntry parent = null;
+            foreach (ValidatorEntry entry in entries)
+            {
+                if (entry.Validator is AssetsValidator)
+                {
+                    parent = entry;
+                    break;
+                }
+            }
+
+            Assert.That(parent, Is.Not.Null);
+            Assert.That(parent!.Children, Has.Some.Matches<ValidatorEntry>(entry =>
+                entry.Validator is NotNullValidator));
+            Assert.That(parent.Children, Has.Some.Matches<ValidatorEntry>(entry =>
+                entry.Validator is MissingScriptsValidator));
+            Assert.That(parent.Children, Has.None.Matches<ValidatorEntry>(entry =>
+                entry.Validator is AssetsValidator));
         }
 
         sealed class TestAsset : ScriptableObject { }

@@ -177,3 +177,7 @@ public sealed class CharacterSettingsValidator : ScriptableObjectValidator<Chara
 ```
 
 The Assets dispatcher passes matching ScriptableObjects to the base, which calls your `Validate` method. Put the concrete validator in an Editor-only assembly.
+
+### Group validators under a parent
+
+If your validator runs a family of child validators, inherit from `ValidatorWithChildren<TChild>` and implement `IValidator.ValidateAsync`. Set `TChild` to the interface or base type of its children (for example, `IAssetValidator`). The factory discovers matching validators by reflection, and the base class stores both `Children` and `EnabledChildren`. Before each run the selection provider updates `EnabledChildren`, so your validator only needs to iterate that collection. `ValidationContext` does not carry selection state. Disabling a parent skips it without changing individual child selections. The built-in Assets validator is an example of this pattern.

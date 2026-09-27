@@ -13,20 +13,20 @@ using Object = UnityEngine.Object;
 
 namespace GValidator.Validators.Assets
 {
-    public sealed class AssetsValidator : IValidator
+    [Validator("Assets")]
+    public sealed class AssetsValidator : ValidatorWithChildren<IAssetValidator>
     {
-        readonly IReadOnlyList<IAssetValidator> _validators;
-
-        public AssetsValidator(IReadOnlyList<IAssetValidator> validators)
-        {
-            _validators = validators;
-        }
-
-        public async Task ValidateAsync(
+        public override async Task ValidateAsync(
             IValidationBuilder validation,
             IValidationContext context,
             IProgressScope progress)
         {
+            if (EnabledChildren.Count == 0)
+            {
+                progress.Report(1f);
+                return;
+            }
+
             // The Assets source excludes scenes; the selected scene sources supply them.
             List<Object> assets = await context.AssetsProvider.GetAssetsAsync(string.Empty);
 
@@ -110,7 +110,7 @@ namespace GValidator.Validators.Assets
             IValidationBuilder validation,
             IValidationContext context)
         {
-            foreach (IAssetValidator validator in _validators)
+            foreach (IAssetValidator validator in EnabledChildren)
             {
                 if (!validator.CanValidate(asset)) continue;
 

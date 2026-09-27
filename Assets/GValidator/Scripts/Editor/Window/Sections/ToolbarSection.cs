@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using System.Linq;
 using GValidator.Models;
 using GValidator.Providers;
 using GValidator.Validation.Assets;
@@ -13,7 +12,6 @@ using GValidator.Validation.Models;
 using GValidator.Validation.Progress;
 using GValidator.Validation.Result;
 using GValidator.Validation.Runner;
-using GValidator.Validators.Assets;
 using GValidator.Window.Providers;
 using UnityEditor;
 using UnityEngine;
@@ -84,20 +82,7 @@ namespace GValidator.Window.Sections
 
         async Task RunValidationAsync(string? scopePath, bool isFile)
         {
-            var selected = _validatorsProvider.GetSelected();
-            List<IValidator> validators = selected
-                .Where(entry => entry.Validator != null)
-                .Select(entry => entry.Validator!)
-                .ToList();
-            List<IAssetValidator> assetValidators = selected
-                .Where(entry => entry.AssetValidator != null)
-                .Select(entry => entry.AssetValidator!)
-                .ToList();
-
-            if (assetValidators.Count > 0)
-            {
-                validators.Insert(0, new AssetsValidator(assetValidators));
-            }
+            IReadOnlyList<IValidator> validators = _validatorsProvider.GetRunnableValidators();
 
             string normalizedScopePath = string.IsNullOrWhiteSpace(scopePath)
                 ? "Assets"

@@ -5,7 +5,7 @@ using GValidator.Validation.Progress;
 
 namespace GValidator.Validation.Models
 {
-    public interface IValidator
+    public interface IValidator : IValidatorNode
     {
         Task ValidateAsync(
             IValidationBuilder validation, 
