@@ -1,0 +1,67 @@
+name: Release Unity package
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Package version (for example, 1.0.1)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: unity-package-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    if: github.ref_type == 'branch'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Validate version and tag
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          python3 -c 'import os, re; version = os.environ["VERSION"]; assert re.fullmatch(r"(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?", version), "Invalid version"'
+          if git ls-remote --exit-code --tags origin "refs/tags/v${VERSION}"; then
+            echo "Tag v${VERSION} already exists" >&2
+            exit 1
+          fi
+
+      - name: Update and commit package version
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          python3 scripts/release_package.py version "$VERSION"
+          git add Assets/GValidator/package.json
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          if git diff --cached --quiet; then
+            echo "Assets/GValidator/package.json already has version $VERSION; using the current commit"
+          else
+            git commit -m "Release v${VERSION}"
+          fi
+
+      - name: Build Unity package without examples and tests
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          python3 scripts/release_package.py build "dist/GValidator-${VERSION}.unitypackage"
+
+      - name: Push version commit and publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.version }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          git push origin "HEAD:refs/heads/${BRANCH}"
+          gh release create "v${VERSION}" "dist/GValidator-${VERSION}.unitypackage" \
+            --target "$(git rev-parse HEAD)" \
+            --title "v${VERSION}" \
+            --generate-notes

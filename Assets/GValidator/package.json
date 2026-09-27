@@ -1,0 +1,6 @@
+{
+  "name": "com.guillemsc.gvalidator",
+  "version": "1.0.0",
+  "displayName": "GValidator",
+  "description": "A generic validation framework for Unity projects."
+}
