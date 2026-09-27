@@ -393,6 +393,82 @@ public sealed class CharacterSettingsValidator
 
 The base class handles type filtering and passes only matching assets to your validation method.
 
+### Option 4: create a validator from scratch
+
+Implement `IValidator` when you need complete control over discovery, iteration, progress, and reporting. A standalone validator appears as a top-level entry in the Validators list instead of as a child of **Assets**.
+
+The following example finds textures through GValidator's configured asset provider and reports textures larger than a project-defined limit:
+
+```csharp
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using GValidator.Validation.Attributes;
+using GValidator.Validation.Builder;
+using GValidator.Validation.Context;
+using GValidator.Validation.Models;
+using GValidator.Validation.Progress;
+using UnityEngine;
+using Object = UnityEngine.Object;
+
+[Validator("Texture Size")]
+public sealed class TextureSizeValidator : IValidator
+{
+    const int MaximumSize = 4096;
+
+    public async Task ValidateAsync(
+        IValidationBuilder validation,
+        IValidationContext context,
+        IProgressScope progress)
+    {
+        List<Object> assets = await context.AssetsProvider.GetAssetsAsync("t:Texture2D");
+
+        for (int index = 0; index < assets.Count; index++)
+        {
+            Object asset = assets[index];
+            IProgressScope assetProgress = progress.Step(index, assets.Count, asset.name);
+            assetProgress.Report(0f);
+
+            if (asset is Texture2D texture)
+            {
+                validation.SetObject(texture);
+                try
+                {
+                    bool isTooLarge = texture.width > MaximumSize
+                                      || texture.height > MaximumSize;
+                    if (isTooLarge)
+                    {
+                        validation.Error(
+                            $"Texture is {texture.width}x{texture.height}; " +
+                            $"the maximum is {MaximumSize}x{MaximumSize}");
+                    }
+                }
+                finally
+                {
+                    validation.ClearObject();
+                }
+            }
+
+            assetProgress.Report(1f);
+            await context.FrameSlicer.TrySlice();
+        }
+
+        progress.Report(1f);
+    }
+}
+```
+
+A standalone validator can use:
+
+- `context.AssetsProvider` to retrieve assets while respecting selected sources, the current scope, and ignored folders.
+- `validation.SetObject(...)` before reporting a message so results include the affected object and its path.
+- `validation.ClearObject()` after validating that object. Use `finally` so the context is cleared if validation throws.
+- `progress.Step(...)` and `progress.Report(...)` to display meaningful progress.
+- `context.FrameSlicer.TrySlice()` during long operations to keep the Editor responsive.
+
+GValidator sets the validator name before calling `ValidateAsync`, so a standalone validator normally does not need to call `SetValidatorName` itself.
+
+As with an `IAssetValidator`, put the class in an Editor-only assembly, make it concrete and non-generic, and provide a parameterless constructor so GValidator can discover it.
+
 ### Choosing an extension method
 
 | Requirement | Recommended option |
@@ -402,6 +478,7 @@ The base class handles type filtering and passes only matching assets to your va
 | A serialized string must have a value | `[StringNotEmpty]` |
 | A reusable rule should inspect many object types | `IAssetValidator` |
 | A reusable rule targets one ScriptableObject type | `ScriptableObjectValidator<T>` |
+| A rule needs complete control over discovery and execution | `IValidator` |
 
 ## Exporting results
 
