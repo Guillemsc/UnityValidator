@@ -4,7 +4,7 @@ using System.Reflection;
 using GValidator.Validation.Attributes;
 using GValidator.Validation.Models;
 
-namespace GValidator.Validation.Providers
+namespace GValidator.Validation.Validators
 {
     public static class ValidatorsFactory
     {

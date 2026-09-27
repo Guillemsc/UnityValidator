@@ -4,7 +4,7 @@ using GValidator.Providers;
 using GValidator.Sections;
 using GValidator.Validation.Assets;
 using GValidator.Validation.AssetSources;
-using GValidator.Validation.Providers;
+using GValidator.Validation.Validators;
 using GValidator.Window.Providers;
 using GValidator.Window.Sections;
 using UnityEditor;
