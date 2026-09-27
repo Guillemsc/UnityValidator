@@ -36,6 +36,27 @@ namespace GValidator.Window.MenuItems
             return !string.IsNullOrWhiteSpace(GetSelectedAssetPath(command));
         }
 
+        [MenuItem("CONTEXT/ScriptableObject/Validate", false, 2000)]
+        static void ValidateScriptableObject(MenuCommand command)
+        {
+            Object scriptableObject = command.context;
+            if (scriptableObject == null) return;
+
+            GValidatorWindow.OpenAndValidateAsset(scriptableObject);
+        }
+
+        [MenuItem("CONTEXT/ScriptableObject/Validate", true)]
+        static bool ValidateScriptableObjectIsAvailable(MenuCommand command)
+        {
+            Object scriptableObject = command.context;
+            bool isScriptableObject = scriptableObject is ScriptableObject;
+            string assetPath = isScriptableObject
+                ? AssetDatabase.GetAssetPath(scriptableObject)
+                : string.Empty;
+            bool hasAssetPath = !string.IsNullOrWhiteSpace(assetPath);
+            return hasAssetPath;
+        }
+
         static string GetSelectedAssetPath(MenuCommand command)
         {
             Object contextObject = command.context;

@@ -62,6 +62,8 @@ Open **Tools → GValidator → Validation Window**. The window lets you:
 
 In Unity's Project window, right-click an asset or folder and choose **Validate** to open the window and validate that selection.
 
+For a `ScriptableObject` open in the Inspector, use the three-dots menu and choose **Validate** to validate that specific asset.
+
 Validation is sliced across Editor frames when work takes longer than the configured frame budget. Progress is shown while validators run.
 
 ## Run validation in CI
