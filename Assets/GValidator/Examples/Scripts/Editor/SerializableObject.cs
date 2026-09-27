@@ -2,7 +2,7 @@ using System;
 using GValidator.NotNulls.Attributes;
 using UnityEngine;
 
-namespace GValidator.Scripts.Examples
+namespace GValidator.Examples
 {
     [Serializable]
     public sealed class SerializableObject

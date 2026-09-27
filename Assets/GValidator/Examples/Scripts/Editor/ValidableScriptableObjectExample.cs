@@ -2,7 +2,7 @@ using GValidator.Validation.Builder;
 using GValidator.Validation.Validables;
 using UnityEngine;
 
-namespace GValidator.Scripts.Examples
+namespace GValidator.Examples
 {
     [CreateAssetMenu(
         fileName = "ValidableScriptableObjectExample",

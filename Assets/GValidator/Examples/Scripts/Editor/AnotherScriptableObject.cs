@@ -1,7 +1,7 @@
 using GValidator.NotNulls.Attributes;
 using UnityEngine;
 
-namespace GValidator.Scripts.Examples
+namespace GValidator.Examples
 {
     [CreateAssetMenu(fileName = "AnotherScriptableObject", menuName = "GValidator/Examples/AnotherScriptableObject", order = 1)]
     public sealed class AnotherScriptableObject : ScriptableObject

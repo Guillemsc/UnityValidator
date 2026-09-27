@@ -84,6 +84,9 @@ For GitHub Actions, the repository includes `.github/workflows/gvalidator.yml`, 
 - **Not Null** — reports null serialized references on fields marked with `[NotNull]`.
 - **String Not Empty** — reports empty serialized strings marked with `[StringNotEmpty]`.
 - **Missing Scripts** — finds missing MonoBehaviour scripts on GameObjects in prefabs and scenes.
+- **GameObject Layer** — reports GameObjects using invalid or unnamed layer slots.
+- **Shader Compilation** — reports shader compiler errors, including their source location when available.
+- **Material Shader** — reports materials with no assigned shader or a shader with compilation errors.
 - **IValidable** — discovers and invokes `IValidable` implementations on ScriptableObjects and MonoBehaviours in prefabs/scenes.
 - **Invalid Unity Events** — checks persistent UnityEvent listeners for missing targets or methods.
 
