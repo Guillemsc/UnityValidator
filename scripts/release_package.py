@@ -11,6 +11,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 PACKAGE_ROOT = Path("Assets/GValidator")
 EXCLUDED_DIRECTORIES = {"examples", "test", "tests", "tests~"}
+EXCLUDED_FILES = {".npmignore"}
 VERSION_PATTERN = re.compile(
     r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)"
     r"(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?"
@@ -51,7 +52,11 @@ def update_version(version: str) -> None:
 
 
 def included(path: Path) -> bool:
-    relative_parts = path.relative_to(PACKAGE_ROOT).parts
+    asset_path = path.with_name(path.name.removesuffix(".meta"))
+    if asset_path.name.lower() in EXCLUDED_FILES:
+        return False
+
+    relative_parts = asset_path.relative_to(PACKAGE_ROOT).parts
     return not any(
         part.removesuffix(".meta").lower() in EXCLUDED_DIRECTORIES
         for part in relative_parts
