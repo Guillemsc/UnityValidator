@@ -1,34 +1,64 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using GValidator.Validation.Builder;
 using GValidator.Validation.Context;
 using GValidator.Validation.Progress;
+using GValidator.Validation.Attributes;
+using UnityEditor;
 
 namespace GValidator.Validation.Models
 {
     public abstract class ValidatorWithChildren<TChild> : IValidatorWithChildren
         where TChild : IValidatorNode
     {
+        public IReadOnlyList<ValidatorEntry> ChildEntries { get; private set; } = Array.Empty<ValidatorEntry>();
         protected IReadOnlyList<TChild> Children { get; private set; } = Array.Empty<TChild>();
-        protected IReadOnlyList<TChild> EnabledChildren { get; private set; } = Array.Empty<TChild>();
+        protected IReadOnlyList<TChild> DisabledChildren { get; private set; } = Array.Empty<TChild>();
 
-        public Type ChildValidatorType => typeof(TChild);
+        protected IEnumerable<TChild> EnabledChildren =>
+            Children.Where(child => !DisabledChildren.Contains(child));
+
+        IReadOnlyList<ValidatorEntry> IValidatorWithChildren.Children => ChildEntries;
+
+        protected ValidatorWithChildren()
+        {
+            ConfigureChildTypes();
+        }
 
         public abstract Task ValidateAsync(
             IValidationBuilder validation,
             IValidationContext context,
             IProgressScope progress);
 
-        public void SetChildren(IReadOnlyList<ValidatorEntry> children)
+        void ConfigureChildTypes()
         {
-            Children = GetValidators(children);
-            EnabledChildren = Children;
+            List<ValidatorEntry> childEntries = new();
+            TypeCache.TypeCollection types = TypeCache.GetTypesDerivedFrom<TChild>();
+            foreach (Type type in types)
+            {
+                if (!typeof(TChild).IsAssignableFrom(type)) continue;
+                if (type.IsAbstract || type.IsInterface || type.ContainsGenericParameters) continue;
+
+                if (Activator.CreateInstance(type, true) is TChild validator)
+                {
+                    ValidatorAttribute? attribute = type.GetCustomAttributes(typeof(ValidatorAttribute), false)
+                        .FirstOrDefault() as ValidatorAttribute;
+                    string name = attribute?.Name ?? type.Name;
+                    childEntries.Add(new ValidatorEntry(validator, name));
+                }
+            }
+
+            ChildEntries = childEntries;
+            Children = GetValidators(childEntries);
+            DisabledChildren = Array.Empty<TChild>();
         }
 
-        public void SetEnabledChildren(IReadOnlyList<ValidatorEntry> children)
+
+        public void SetDisabledChildren(IReadOnlyList<ValidatorEntry> children)
         {
-            EnabledChildren = GetValidators(children);
+            DisabledChildren = GetValidators(children);
         }
 
         static IReadOnlyList<TChild> GetValidators(IReadOnlyList<ValidatorEntry> entries)

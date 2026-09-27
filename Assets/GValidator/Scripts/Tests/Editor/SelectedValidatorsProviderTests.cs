@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using GValidator.Providers;
 using GValidator.Validation.Models;
 using GValidator.Validators.Assets;
@@ -18,7 +19,8 @@ namespace GValidator.Tests
             ValidatorEntry first = new(firstValidator, "First");
             ValidatorEntry second = new(secondValidator, "Second");
             ValidatorEntry standalone = new(standaloneValidator, "Standalone");
-            ValidatorEntry parent = new(new AssetsValidator(), "Assets", new[] { first, second });
+            TestParentValidator parentValidator = new();
+            ValidatorEntry parent = new(parentValidator, "Assets", new[] { first, second });
             SelectedValidatorsProvider provider = new(new[] { parent, standalone });
 
             provider.SetSelected(second, false);
@@ -47,8 +49,8 @@ namespace GValidator.Tests
             IValidatorWithChildren nestedValidator = Substitute.For<IValidatorWithChildren>();
             IValidatorWithChildren rootValidator = Substitute.For<IValidatorWithChildren>();
             ValidatorEntry leaf = new(leafValidator, "Leaf");
-            ValidatorEntry nested = new(nestedValidator, "Nested", new[] { leaf });
-            ValidatorEntry root = new(rootValidator, "Root", new[] { nested });
+            ValidatorEntry nested = new(nestedValidator, "Nested");
+            ValidatorEntry root = new(rootValidator, "Root");
             SelectedValidatorsProvider provider = new(new[] { root });
 
             provider.SetSelected(root, false);
@@ -77,15 +79,15 @@ namespace GValidator.Tests
 
             provider.GetRunnableValidators();
 
-            parentValidator.Received(1).SetEnabledChildren(
+            parentValidator.Received(1).SetDisabledChildren(
                 Arg.Is<IReadOnlyList<ValidatorEntry>>(children => children.Count == 2));
 
             provider.SetSelected(second, false);
             IReadOnlyList<IValidator> runnable = provider.GetRunnableValidators();
 
             Assert.That(runnable, Is.EquivalentTo(new IValidator[] { parentValidator }));
-            parentValidator.Received(1).SetEnabledChildren(
-                Arg.Is<IReadOnlyList<ValidatorEntry>>(children => children.Count == 1 && children[0] == first));
+            parentValidator.Received(1).SetDisabledChildren(
+                Arg.Is<IReadOnlyList<ValidatorEntry>>(children => children.Count == 1 && children[0] == second));
 
             provider.SetSelected(first, false);
             Assert.That(provider.GetRunnableValidators(), Is.Empty);
@@ -100,8 +102,7 @@ namespace GValidator.Tests
             ValidatorEntry second = new(secondValidator, "Second");
             TestParentValidator validator = new();
 
-            validator.SetChildren(new[] { first, second });
-            validator.SetEnabledChildren(new[] { first });
+            validator.SetDisabledChildren(new[] { second });
 
             Assert.That(validator.Discovered, Is.EquivalentTo(new[] { firstValidator, secondValidator }));
             Assert.That(validator.Enabled, Is.EquivalentTo(new[] { firstValidator }));
@@ -110,7 +111,7 @@ namespace GValidator.Tests
         sealed class TestParentValidator : ValidatorWithChildren<IAssetValidator>
         {
             public IReadOnlyList<IAssetValidator> Discovered => Children;
-            public IReadOnlyList<IAssetValidator> Enabled => EnabledChildren;
+            public IReadOnlyList<IAssetValidator> Enabled => EnabledChildren.ToList();
 
             public override System.Threading.Tasks.Task ValidateAsync(
                 GValidator.Validation.Builder.IValidationBuilder validation,

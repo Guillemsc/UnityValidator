@@ -59,6 +59,8 @@ description: Follow this Unity project's C# style and coding rules when creating
   currentValidation.Set(result);
   ```
 
+- **Avoid recursion in general.** Prefer iterative logic with an explicit stack or queue. Use recursion only when it is clearly justified, the depth is bounded and safe, and the recursive implementation is substantially clearer than an iterative alternative.
+
 - Follow the surrounding code's naming, namespace, formatting, and file-organization conventions.
 - Keep changes focused; preserve unrelated user changes and avoid unrelated refactoring.
 - For Unity scripts, preserve existing `.meta` files and add Unity metadata for new scripts/folders when the surrounding project uses it.

@@ -91,7 +91,16 @@ namespace GValidator.Providers
                 enabledChildren.Add(child);
             }
 
-            parent.SetEnabledChildren(enabledChildren);
+            List<ValidatorEntry> disabledChildren = new();
+            foreach (ValidatorEntry child in entry.Children)
+            {
+                if (!enabledChildren.Contains(child))
+                {
+                    disabledChildren.Add(child);
+                }
+            }
+
+            parent.SetDisabledChildren(disabledChildren);
             return enabledChildren.Count > 0;
         }
     }

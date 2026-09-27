@@ -10,7 +10,7 @@ namespace GValidator.Validation.Validators
     {
         public static IReadOnlyList<ValidatorEntry> CreateAll()
         {
-            List<ValidatorEntry> entries = new();
+            List<Type> validatorTypes = new();
                 
             Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
 
@@ -22,89 +22,51 @@ namespace GValidator.Validation.Validators
                 {
                     if (!IsConcreteValidatorNode(type)) continue;
 
-                    ValidatorAttribute? attribute = GetValidatorAttribute(type);
-                    string name = attribute?.Name ?? type.Name;
-
-                    IValidatorNode? validator = CreateValidatorNode(type);
-                    if (validator != null)
-                    {
-                        entries.Add(new ValidatorEntry(validator, name));
-                    }
+                    validatorTypes.Add(type);
                 }
             }
 
-            Dictionary<ValidatorEntry, List<ValidatorEntry>> childEntries = new();
-            Dictionary<ValidatorEntry, ValidatorEntry> parentByChild = new();
-            foreach (ValidatorEntry entry in entries)
+            List<ValidatorEntry> entries = new();
+            foreach (Type type in validatorTypes)
             {
-                if (entry.Validator is not IValidatorWithChildren parent) continue;
+                IValidatorNode? validator = CreateValidatorNode(type);
+                if (validator == null) continue;
 
-                List<ValidatorEntry> matching = new();
-                foreach (ValidatorEntry candidate in entries)
-                {
-                    if (candidate == entry || parentByChild.ContainsKey(candidate)) continue;
+                ValidatorAttribute? attribute = GetValidatorAttribute(type);
+                string name = attribute?.Name ?? type.Name;
+                entries.Add(new ValidatorEntry(validator, name));
 
-                    bool matchesType = parent.ChildValidatorType.IsInstanceOfType(candidate.Validator);
-                    if (!matchesType) continue;
-
-                    bool createsCycle = IsAncestor(entry, candidate, parentByChild);
-                    if (createsCycle) continue;
-
-                    matching.Add(candidate);
-                    parentByChild.Add(candidate, entry);
-                }
-
-                childEntries.Add(entry, matching);
             }
 
             List<ValidatorEntry> roots = new();
             foreach (ValidatorEntry entry in entries)
             {
-                if (parentByChild.ContainsKey(entry)) continue;
+                bool hasParent = false;
+                foreach (ValidatorEntry possibleParent in entries)
+                {
+                    if (possibleParent.Validator is not IValidatorWithChildren parent) continue;
 
-                roots.Add(CreateTree(entry, childEntries));
+                    foreach (ValidatorEntry child in parent.Children)
+                    {
+                        if (child.Validator.GetType() == entry.Validator.GetType())
+                        {
+                            hasParent = true;
+                            break;
+                        }
+                    }
+
+                    if (hasParent) break;
+                }
+
+                if (!hasParent)
+                {
+                    roots.Add(entry);
+                }
             }
 
             return roots;
         }
 
-        static bool IsAncestor(
-            ValidatorEntry entry,
-            ValidatorEntry candidate,
-            Dictionary<ValidatorEntry, ValidatorEntry> parentByChild)
-        {
-            ValidatorEntry current = entry;
-            if (current == candidate) return true;
-
-            while (parentByChild.TryGetValue(current, out ValidatorEntry? parent))
-            {
-                if (parent == candidate) return true;
-
-                current = parent;
-            }
-
-            return false;
-        }
-
-        static ValidatorEntry CreateTree(
-            ValidatorEntry entry,
-            Dictionary<ValidatorEntry, List<ValidatorEntry>> childEntries)
-        {
-            if (!childEntries.TryGetValue(entry, out List<ValidatorEntry>? children)) return entry;
-
-            List<ValidatorEntry> nestedChildren = new();
-            foreach (ValidatorEntry child in children)
-            {
-                nestedChildren.Add(CreateTree(child, childEntries));
-            }
-
-            if (entry.Validator is IValidatorWithChildren parent)
-            {
-                parent.SetChildren(nestedChildren);
-            }
-
-            return new ValidatorEntry(entry.Validator, entry.Name, nestedChildren);
-        }
 
         static bool IsConcreteValidatorNode(Type? type)
         {
@@ -127,15 +89,10 @@ namespace GValidator.Validation.Validators
         {
             try
             {
-                // nonPublic: true supports validators declared as internal or with
-                // an internal/private parameterless constructor.
                 return Activator.CreateInstance(validatorType, true) as IValidatorNode;
             }
             catch (Exception)
             {
-                // A broken validator must not prevent unrelated assemblies from
-                // being scanned. It is simply not discoverable until it can be
-                // constructed successfully.
                 return null;
             }
         }

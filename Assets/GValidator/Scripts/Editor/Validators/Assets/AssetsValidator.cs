@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using GValidator.Validation.Attributes;
@@ -21,7 +22,7 @@ namespace GValidator.Validators.Assets
             IValidationContext context,
             IProgressScope progress)
         {
-            if (EnabledChildren.Count == 0)
+            if (!EnabledChildren.Any())
             {
                 progress.Report(1f);
                 return;

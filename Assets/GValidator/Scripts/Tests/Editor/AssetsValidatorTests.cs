@@ -46,11 +46,8 @@ namespace GValidator.Tests
             IAssetValidator nonMatching = Substitute.For<IAssetValidator>();
             nonMatching.CanValidate(asset).Returns(false);
             AssetsValidator dispatcher = new();
-            dispatcher.SetChildren(new[]
-            {
-                new ValidatorEntry(matching, "Matching"),
-                new ValidatorEntry(nonMatching, "Non-matching")
-            });
+            // The factory normally configures child validators; this test supplies the selected child directly.
+            dispatcher.SetDisabledChildren(new[] { new ValidatorEntry(nonMatching, "Non-matching") });
             ValidationBuilder builder = new();
             IProgressScope progress = Substitute.For<IProgressScope>();
             progress.Step(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<string>()).Returns(progress);
@@ -89,8 +86,8 @@ namespace GValidator.Tests
 
             AssetsValidator dispatcher = new();
             ValidatorEntry enabledEntry = new(enabled, "Enabled");
-            dispatcher.SetChildren(new[] { enabledEntry, new ValidatorEntry(disabled, "Disabled") });
-            dispatcher.SetEnabledChildren(new[] { enabledEntry });
+            dispatcher.SetDisabledChildren(new[] { new ValidatorEntry(disabled, "Disabled") });
+            dispatcher.SetDisabledChildren(new[] { new ValidatorEntry(disabled, "Disabled") });
             IProgressScope progress = Substitute.For<IProgressScope>();
             progress.Step(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<string>()).Returns(progress);
 
