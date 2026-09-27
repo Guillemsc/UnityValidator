@@ -1,0 +1,63 @@
+name: GValidator CI
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  checks: write
+
+jobs:
+  validation:
+    name: Validate Unity project
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Check Unity license configuration
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        run: |
+          if [ -z "$UNITY_LICENSE" ] && { [ -z "$UNITY_EMAIL" ] || [ -z "$UNITY_PASSWORD" ]; }; then
+            echo "Configure UNITY_LICENSE, or configure UNITY_EMAIL and UNITY_PASSWORD, in repository Actions secrets." >&2
+            exit 1
+          fi
+
+      - name: Run GValidator CI
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+        uses: game-ci/unity-test-runner@v4
+        with:
+          projectPath: .
+          testMode: EditMode
+          customParameters: -executeMethod GValidator.Ci.GValidatorCi.Run
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          checkName: GValidator CI validation
+
+      - name: Publish GValidator result
+        if: always()
+        uses: dorny/test-reporter@v2
+        with:
+          name: GValidator CI validation
+          path: gvalidator-results.xml
+          reporter: java-junit
+          fail-on-error: false
+
+      - name: Upload GValidator report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: GValidator CI report
+          path: gvalidator-results.xml
+          if-no-files-found: warn

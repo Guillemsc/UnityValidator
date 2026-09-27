@@ -63,6 +63,20 @@ In Unity's Project window, right-click an asset or folder and choose **Validate*
 
 Validation is sliced across Editor frames when work takes longer than the configured frame budget. Progress is shown while validators run.
 
+## Run validation in CI
+
+The CI layer is independent of the Editor window. It creates the default asset sources and selected validators, runs validation, and returns a JUnit XML string in memory.
+
+The batch-mode entry point is:
+
+```text
+GValidator.Ci.GValidatorCi.Run
+```
+
+The process logs the JUnit XML to Unity's output, writes it to `gvalidator-results.xml`, and exits with code `1` when errors are found and `0` when validation passes. Warnings do not fail CI by default; change `FailOnWarning` in `GValidatorCi` if warnings should fail the build.
+
+For GitHub Actions, the repository includes `.github/workflows/gvalidator.yml`, which runs the CI validation and publishes the JUnit result as a check and an artifact. It requires the same Unity activation secrets as the Unity test runner.
+
 ## Built-in validators
 
 - **Asset validation pipeline** — traverses selected assets, prefabs, and scenes once and dispatches each object to selected asset validators.
