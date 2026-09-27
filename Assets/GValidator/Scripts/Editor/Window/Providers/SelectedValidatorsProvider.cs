@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using GValidator.Validation.Models;
+using GValidator.Validation.Validators;
 
 namespace GValidator.Providers
 {

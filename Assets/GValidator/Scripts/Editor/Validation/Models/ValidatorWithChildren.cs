@@ -6,6 +6,7 @@ using GValidator.Validation.Builder;
 using GValidator.Validation.Context;
 using GValidator.Validation.Progress;
 using GValidator.Validation.Attributes;
+using GValidator.Validation.Validators;
 using UnityEditor;
 
 namespace GValidator.Validation.Models
@@ -13,14 +14,12 @@ namespace GValidator.Validation.Models
     public abstract class ValidatorWithChildren<TChild> : IValidatorWithChildren
         where TChild : IValidatorNode
     {
-        public IReadOnlyList<ValidatorEntry> ChildEntries { get; private set; } = Array.Empty<ValidatorEntry>();
-        protected IReadOnlyList<TChild> Children { get; private set; } = Array.Empty<TChild>();
+        public IReadOnlyList<ValidatorEntry> Children { get; private set; } = Array.Empty<ValidatorEntry>();
+        protected IReadOnlyList<TChild> ChildValidators { get; private set; } = Array.Empty<TChild>();
         protected IReadOnlyList<TChild> DisabledChildren { get; private set; } = Array.Empty<TChild>();
 
         protected IEnumerable<TChild> EnabledChildren =>
-            Children.Where(child => !DisabledChildren.Contains(child));
-
-        IReadOnlyList<ValidatorEntry> IValidatorWithChildren.Children => ChildEntries;
+            ChildValidators.Where(child => !DisabledChildren.Contains(child));
 
         protected ValidatorWithChildren()
         {
@@ -50,8 +49,8 @@ namespace GValidator.Validation.Models
                 }
             }
 
-            ChildEntries = childEntries;
-            Children = GetValidators(childEntries);
+            Children = childEntries;
+            ChildValidators = GetValidators(childEntries);
             DisabledChildren = Array.Empty<TChild>();
         }
 

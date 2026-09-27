@@ -27,8 +27,7 @@ namespace GValidator.Validators.Assets
                 progress.Report(1f);
                 return;
             }
-
-            // The Assets source excludes scenes; the selected scene sources supply them.
+            
             List<Object> assets = await context.AssetsProvider.GetAssetsAsync(string.Empty);
 
             for (int index = 0; index < assets.Count; index++)

@@ -28,6 +28,7 @@ namespace GValidator.Validation.Runner
                 for (int i = 0; i < validationContext.Validators.Count; i++)
                 {
                     IValidator validator = validationContext.Validators[i];
+                    
                     IProgressScope validatorProgress = progress.Step(i, validationContext.Validators.Count, validator.GetType().Name);
                     ValidatorAttribute? validatorAttribute = validator.GetType().GetCustomAttribute<ValidatorAttribute>();
                     string validatorName = validatorAttribute?.Name ?? validator.GetType().Name;

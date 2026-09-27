@@ -16,6 +16,8 @@ namespace GValidator.Validation.Validators
 
             foreach (var assembly in assemblies)
             {
+                if (IsTestAssembly(assembly)) continue;
+
                 Type[] types = assembly.GetTypes();
 
                 foreach (var type in types)
@@ -65,6 +67,14 @@ namespace GValidator.Validation.Validators
             }
 
             return roots;
+        }
+
+        static bool IsTestAssembly(Assembly assembly)
+        {
+            return string.Equals(
+                assembly.GetName().Name,
+                "GValidator.Tests",
+                StringComparison.Ordinal);
         }
 
 

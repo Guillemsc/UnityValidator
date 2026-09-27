@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using GValidator.Providers;
 using GValidator.Validation.Models;
+using GValidator.Validation.Validators;
 using GValidator.Validators.Assets;
 using NSubstitute;
 using NUnit.Framework;
@@ -20,7 +21,7 @@ namespace GValidator.Tests
             ValidatorEntry second = new(secondValidator, "Second");
             ValidatorEntry standalone = new(standaloneValidator, "Standalone");
             TestParentValidator parentValidator = new();
-            ValidatorEntry parent = new(parentValidator, "Assets", new[] { first, second });
+            ValidatorEntry parent = new(parentValidator, "Assets");
             SelectedValidatorsProvider provider = new(new[] { parent, standalone });
 
             provider.SetSelected(second, false);
@@ -74,7 +75,7 @@ namespace GValidator.Tests
             IAssetValidator secondValidator = Substitute.For<IAssetValidator>();
             ValidatorEntry first = new(firstValidator, "First");
             ValidatorEntry second = new(secondValidator, "Second");
-            ValidatorEntry parent = new(parentValidator, "Parent", new[] { first, second });
+            ValidatorEntry parent = new(parentValidator, "Parent");
             SelectedValidatorsProvider provider = new(new[] { parent });
 
             provider.GetRunnableValidators();
@@ -110,7 +111,7 @@ namespace GValidator.Tests
 
         sealed class TestParentValidator : ValidatorWithChildren<IAssetValidator>
         {
-            public IReadOnlyList<IAssetValidator> Discovered => Children;
+            public IReadOnlyList<IAssetValidator> Discovered => ChildValidators;
             public IReadOnlyList<IAssetValidator> Enabled => EnabledChildren.ToList();
 
             public override System.Threading.Tasks.Task ValidateAsync(
