@@ -3,7 +3,8 @@
     "rootNamespace": "",
     "references": [
         "GUID:ead1b71e7ddc04382a1c8888803ea9bc",
-        "GUID:5efa967113e1b4ff1a6196375a8a82fc"
+        "GUID:5efa967113e1b4ff1a6196375a8a82fc",
+        "TNRD.NSubstitute"
     ],
     "includePlatforms": [
         "Editor"
