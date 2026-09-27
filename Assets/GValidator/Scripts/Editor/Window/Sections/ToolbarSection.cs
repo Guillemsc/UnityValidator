@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using GValidator.Configuration;
 using GValidator.Models;
 using GValidator.Providers;
 using GValidator.Validation.Assets;
@@ -86,12 +87,13 @@ namespace GValidator.Window.Sections
             SetSearchScopeDisplay(scope);
 
             FrameSlicer frameSlicer = new();
+            GValidatorConfiguration configuration = GlobalConfigurationProvider.GetOrCreate();
             
             AssetsProvider assetsProvider = new(
                 _assetsSourcesProvider.GetSelected(),
                 frameSlicer,
-                scope.SearchInFolders,
-                scope.TargetAssetPath);
+                scope,
+                configuration.IgnoredFolders);
 
             ValidationContext validationContext = new(
                 validators,

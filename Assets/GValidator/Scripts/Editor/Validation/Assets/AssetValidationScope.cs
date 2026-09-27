@@ -1,6 +1,6 @@
 using UnityEditor;
 
-namespace GValidator.Models
+namespace GValidator.Validation.Assets
 {
     public enum AssetValidationScopeKind
     {

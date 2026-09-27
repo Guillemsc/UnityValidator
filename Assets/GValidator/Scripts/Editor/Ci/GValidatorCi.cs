@@ -1,7 +1,7 @@
-using System.IO;
+using GValidator.Configuration;
 using GValidator.Validation.Ci;
 using GValidator.Validation.Progress;
-using GValidator.Validation.Result;
+using GValidator.Window.Providers;
 using UnityEditor;
 
 namespace GValidator.Ci
@@ -12,22 +12,21 @@ namespace GValidator.Ci
 
         public static async void Run()
         {
-            ValidationDefinition definition = ValidationDefinitionBuilder.Build(NoOpProgressSink.Instance);
-            ValidationCiRunner runner = new(definition);
-            
-            string junitXml = await runner.RunAsync();
-            UnityEngine.Debug.Log(junitXml);
+            GValidatorConfiguration configuration = GlobalConfigurationProvider.GetOrCreate();
 
-            await File.WriteAllTextAsync(ReportPath, junitXml);
-            UnityEngine.Debug.Log($"GValidator report written to: {ReportPath}");
+            ValidationDefinition definition = ValidationDefinitionBuilder.Build(
+                NoOpProgressSink.Instance,
+                configuration.IgnoredFolders);
 
-            IValidationResult result = runner.Result!;
+            ValidationCiRunnerConfiguration runnerConfiguration = new(
+                ReportPath,
+                configuration.IgnoredFolders,
+                UnityEngine.Debug.Log);
 
-            bool hasFailure = result.ErrorCount > 0;
-            UnityEngine.Debug.Log(
-                $"GValidator completed with {result.ErrorCount} error(s) and {result.WarningCount} warning(s).");
+            ValidationCiRunner runner = new(definition, runnerConfiguration);
 
-            EditorApplication.Exit(hasFailure ? 1 : 0);
+            ValidationCiRunnerResult result = await runner.RunAsync();
+            EditorApplication.Exit(result.ExitCode);
         }
     }
 }

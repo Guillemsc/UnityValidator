@@ -11,19 +11,19 @@ namespace GValidator.Validation.Assets
     {
         readonly IReadOnlyList<IAssetsSource> _assetsSources;
         readonly IFrameSlicer _frameSlicer;
-        readonly string[] _searchInFolders;
-        readonly string? _targetAssetPath;
+        readonly AssetValidationScope _scope;
+        readonly IReadOnlyList<string> _ignoredFolders;
         
         public AssetsProvider(
             IReadOnlyList<IAssetsSource> assetsSources,
             IFrameSlicer frameSlicer,
-            string[] searchInFolders, 
-            string? targetAssetPath = null)
+            AssetValidationScope scope,
+            IReadOnlyList<string> ignoredFolders)
         {
             _assetsSources = assetsSources;
             _frameSlicer = frameSlicer;
-            _searchInFolders = searchInFolders;
-            _targetAssetPath = targetAssetPath;
+            _scope = scope;
+            _ignoredFolders = ignoredFolders;
         }
 
         public async Task<List<Object>> GetAssetsAsync(string filter)
@@ -34,25 +34,67 @@ namespace GValidator.Validation.Assets
             {
                 var assets = await source.GetAssetsAsync(
                     filter,
-                    _searchInFolders,
+                    _scope.SearchInFolders,
                     _frameSlicer);
 
                 foreach (var asset in assets)
                 {
                     await _frameSlicer.TrySlice();
-                    
-                    if (!string.IsNullOrWhiteSpace(_targetAssetPath))
-                    {
-                        var path = UnityEditor.AssetDatabase.GetAssetPath(asset);
-                        var isFile = string.Equals(path, _targetAssetPath, StringComparison.OrdinalIgnoreCase);
-                        if(!isFile) continue;
-                    }
+
+                    string assetPath = UnityEditor.AssetDatabase.GetAssetPath(asset).Replace('\\', '/');
+
+                    var isOutsideScope = IsAssetOutsideScope(assetPath);
+                    if (isOutsideScope) continue;
+
+                    bool isInIgnoredFolder = IsInIgnoredFolder(assetPath);
+                    if (isInIgnoredFolder) continue;
 
                     ret.Add(asset);
                 }
             }
 
             return ret;
+        }
+
+        bool IsAssetOutsideScope(string assetPath)
+        {
+            bool hasTargetAssetPath = !string.IsNullOrWhiteSpace(_scope.TargetAssetPath);
+            if (hasTargetAssetPath)
+            {
+                bool isTargetAsset = string.Equals(
+                    assetPath,
+                    _scope.TargetAssetPath,
+                    StringComparison.OrdinalIgnoreCase);
+
+                if (!isTargetAsset) return true;
+            }
+
+            return false;
+        }
+
+        bool IsInIgnoredFolder(string assetPath)
+        {
+            foreach (string ignoredFolder in _ignoredFolders)
+            {
+                if (string.IsNullOrWhiteSpace(ignoredFolder)) continue;
+
+                string normalizedFolder = ignoredFolder.Replace('\\', '/').TrimEnd('/');
+
+                bool isFolder = string.Equals(
+                    assetPath,
+                    normalizedFolder,
+                    StringComparison.OrdinalIgnoreCase);
+
+                bool isFolderChild = assetPath.StartsWith(
+                    normalizedFolder + "/",
+                    StringComparison.OrdinalIgnoreCase);
+
+                bool isIgnored = isFolder || isFolderChild;
+
+                if (isIgnored) return true;
+            }
+
+            return false;
         }
     }
 }

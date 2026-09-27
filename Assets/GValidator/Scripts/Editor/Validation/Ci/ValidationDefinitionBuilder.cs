@@ -15,6 +15,13 @@ namespace GValidator.Validation.Ci
     {
         public static ValidationDefinition Build(IProgressSink progressSink)
         {
+            return Build(progressSink, System.Array.Empty<string>());
+        }
+
+        public static ValidationDefinition Build(
+            IProgressSink progressSink,
+            IReadOnlyList<string> ignoredFolders)
+        {
             FrameSlicer frameSlicer = new(int.MaxValue);
             
             List<IAssetsSource> assetSources = new();
@@ -24,7 +31,8 @@ namespace GValidator.Validation.Ci
             AssetsProvider assetsProvider = new(
                 assetSources,
                 frameSlicer,
-                new[] { "Assets" });
+                AssetValidationScope.FromPath(),
+                ignoredFolders);
             SelectedValidatorsProvider validatorsProvider = new(ValidatorsFactory.CreateAll());
             IReadOnlyList<IValidator> validators = validatorsProvider.GetRunnableValidators();
 
