@@ -20,7 +20,6 @@ namespace GValidator.Ci
 
             ValidationCiRunnerConfiguration runnerConfiguration = new(
                 ReportPath,
-                configuration.IgnoredFolders,
                 UnityEngine.Debug.Log);
 
             ValidationCiRunner runner = new(definition, runnerConfiguration);

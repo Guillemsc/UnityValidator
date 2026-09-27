@@ -44,7 +44,7 @@ namespace GValidator.Validation.Ci
 
         void LogIgnoredFolders()
         {
-            if (_configuration.IgnoredFolders.Count == 0)
+            if (_definition.IgnoredFolders.Count == 0)
             {
                 _configuration.Log("GValidator ignored folders: none.");
                 return;
@@ -52,7 +52,7 @@ namespace GValidator.Validation.Ci
 
             string folders = string.Join(
                 Environment.NewLine,
-                _configuration.IgnoredFolders);
+                _definition.IgnoredFolders);
             _configuration.Log($"GValidator ignored folders:\n{folders}");
         }
     }

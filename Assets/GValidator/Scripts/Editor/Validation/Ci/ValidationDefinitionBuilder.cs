@@ -39,7 +39,7 @@ namespace GValidator.Validation.Ci
             ValidationContext context = new(validators, assetsProvider, frameSlicer);
             ValidationRunner runner = new(progressSink);
             
-            return new ValidationDefinition(context, runner);
+            return new ValidationDefinition(context, runner, ignoredFolders);
         }
     }
 }

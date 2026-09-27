@@ -27,12 +27,12 @@
                     <uie:ToolbarButton name="select-all-scenes-button" text="Select Scenes" tooltip="Select all scene sources" style="flex-grow: 1;"/>
                     <uie:ToolbarButton name="deselect-all-scenes-button" text="Deselect Scenes" tooltip="Deselect all scene sources" style="flex-grow: 1; padding-right: 0; margin-right: -1px;"/>
                 </uie:Toolbar>
-                <ui:VisualElement class="sources-content" style="flex-grow: 1; min-width: 0; min-height: 0; overflow: hidden; padding: 6px; padding-top: 0; padding-right: 0; padding-left: 0; padding-bottom: 0; margin-bottom: 5px; margin-top: 0;">
+                <ui:VisualElement class="sources-content" style="flex-grow: 1; min-width: 0; min-height: 0; overflow: hidden; padding: 6px; padding-top: 0; padding-right: 0; padding-left: 0; padding-bottom: 0; margin-bottom: 0; margin-top: 0;">
                     <ui:ScrollView name="source-list" mode="Vertical" horizontal-scroller-visibility="Hidden" vertical-scroller-visibility="Auto" class="source-list" style="min-width: 0; min-height: 0; overflow: hidden; padding-left: 0; padding-right: 0; padding-top: 0; padding-bottom: 0;">
                         <ui:Label name="source-list-empty" text="No sources available." class="empty-state" style="min-width: 0; flex-shrink: 1; white-space: nowrap; overflow: hidden; text-overflow: clip; margin-left: 5px; margin-right: 5px; padding-right: 0; padding-left: 0;"/>
                     </ui:ScrollView>
                 </ui:VisualElement>
-                <uie:Toolbar>
+                <uie:Toolbar style="border-top-width: 1px;">
                     <ui:Label text="Validators" class="pane-title" style="-unity-text-align: middle-left; margin-left: 5px; margin-right: 5px;"/>
                 </uie:Toolbar>
                 <ui:VisualElement class="validators-content" style="flex-grow: 1; min-width: 0; min-height: 0; overflow: hidden; padding: 6px; padding-top: 0; padding-right: 0; padding-left: 0; padding-bottom: 0; margin-bottom: 5px; margin-top: 0;">
@@ -48,14 +48,14 @@
                         <ui:VisualElement name="detail-panel" class="detail-panel" style="margin-top: 5px; margin-bottom: 5px;">
                             <ui:TwoPaneSplitView name="detail-content-split" view-data-key="gvalidator-detail-content-split" fixed-pane-index="1" fixed-pane-initial-dimension="250" orientation="Horizontal" style="flex-grow: 1; min-width: 0;">
                                 <ui:ScrollView name="detail-message-scroll" class="detail-message-scroll">
-                                    <ui:Label name="detail-message-label" class="detail-message" style="min-width: 0; white-space: normal; overflow: hidden; padding-left: 0; padding-right: 0; margin-left: 5px; margin-right: 5px;"/>
+                                    <ui:Label name="detail-message-label" class="detail-message" selectable="true" style="min-width: 0; white-space: normal; overflow: hidden; padding-left: 0; padding-right: 0; margin-left: 5px; margin-right: 5px;"/>
                                 </ui:ScrollView>
                                 <ui:ScrollView name="detail-metadata-scroll" style="min-width: 0;">
                                     <ui:VisualElement name="detail-metadata-panel" style="padding-left: 8px; padding-right: 8px; padding-top: 4px;">
                                         <ui:Label text="Validator" style="-unity-font-style: bold; margin-bottom: 2px;"/>
-                                        <ui:Label name="detail-validator-name" text="—" style="white-space: normal; margin-bottom: 8px;"/>
+                                        <ui:Label name="detail-validator-name" text="—" selectable="true" style="white-space: normal; margin-bottom: 8px;"/>
                                         <ui:Label text="Object Path" style="-unity-font-style: bold; margin-bottom: 2px;"/>
-                                        <ui:Label name="detail-object-path" text="—" style="white-space: normal;"/>
+                                        <ui:Label name="detail-object-path" text="—" selectable="true" style="white-space: normal;"/>
                                     </ui:VisualElement>
                                 </ui:ScrollView>
                             </ui:TwoPaneSplitView>
