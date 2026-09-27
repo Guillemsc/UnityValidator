@@ -6,7 +6,10 @@
 
 GValidator helps Unity teams find broken references, invalid assets, scene problems, and project-specific mistakes before they reach a build.
 
-Run validation from a dedicated Editor window, validate one asset or folder from the Project window, or enforce the same rules in CI. Results identify the validator, affected object, and full asset or hierarchy path, and can be exported as JUnit XML.
+Run validation from a dedicated Editor window, validate one asset or folder from the Project window, or enforce the same rules in CI. Results identify the validator, affected object, and full asset or hierarchy path, and can be exported as XML.
+
+<img width="970" height="648" alt="image" src="https://github.com/user-attachments/assets/38663991-fa89-4626-89af-65f1ee80c4c3" />
+
 
 ## Features
 
