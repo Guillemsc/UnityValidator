@@ -59,16 +59,20 @@ Open **Tools → GValidator → Validation Window**. The window lets you:
 - View messages by severity and inspect the validator and object path for the selected result.
 - Use **Run Scoped** to rerun a folder/file scope or **Clear Scope** to reset the scope.
 
-In Unity's Project window, right-click an asset or folder and choose **Validate** to open the window and validate that selection. You can also right-click a GameObject in the Hierarchy and choose **Validate** to validate that GameObject and its children.
+In Unity's Project window, right-click an asset or folder and choose **Validate** to open the window and validate that selection.
 
 Validation is sliced across Editor frames when work takes longer than the configured frame budget. Progress is shown while validators run.
 
 ## Built-in validators
 
+- **Asset validation pipeline** — traverses selected assets, prefabs, and scenes once and dispatches each object to selected asset validators.
 - **Not Null** — reports null serialized references on fields marked with `[NotNull]`.
 - **String Not Empty** — reports empty serialized strings marked with `[StringNotEmpty]`.
 - **Missing Scripts** — finds missing MonoBehaviour scripts on GameObjects in prefabs and scenes.
 - **IValidable** — discovers and invokes `IValidable` implementations on ScriptableObjects and MonoBehaviours in prefabs/scenes.
+- **Invalid Unity Events** — checks persistent UnityEvent listeners for missing targets or methods.
+
+Select the built-in asset checks in the window. They share one asset traversal; each still has its own checkbox. You can add additional asset checks by implementing `IAssetValidator` in an Editor assembly; the factory discovers them by reflection. Asset checks receive one object at a time, so they do not need to search the AssetDatabase or open scenes themselves.
 
 Field attributes are opt-in and go on serialized fields:
 
@@ -88,7 +92,7 @@ public sealed class CharacterSettings : ScriptableObject
 
 ### Validate a MonoBehaviour or ScriptableObject with `IValidable`
 
-Implement `IValidable` on a runtime `MonoBehaviour` or `ScriptableObject`. The `IValidable` validator calls `Validate` and associates messages with that object.
+Implement `IValidable` on a runtime `MonoBehaviour` or `ScriptableObject`. The IValidable asset check calls `Validate` and associates messages with that object.
 
 ```csharp
 using GValidator.Validation.Builder;
@@ -111,9 +115,9 @@ public sealed class SpawnPoint : MonoBehaviour, IValidable
 
 Use `validation.Error(...)`, `Warning(...)`, and `Info(...)` to report messages. `IValidationBuilder` is in the runtime assembly and is safe to use from runtime code.
 
-### Add a discovered Editor validator
+### Add a discovered asset validator
 
-For checks that scan assets or need Editor APIs, implement `IValidator` in an Editor-only assembly and mark the class with `[Validator("Name shown in the window")]`. GValidator discovers concrete `IValidator` classes with parameterless constructors.
+For a check that receives each object from the Assets dispatcher, implement `IAssetValidator` in an Editor-only assembly. Implement `CanValidate` to select object types and `ValidateAsync` to check them. Concrete implementations are discovered by reflection and need a parameterless constructor. Annotate them with `[Validator("Name shown in results")]` to choose the displayed name.
 
 ```csharp
 using System.Threading.Tasks;
@@ -121,43 +125,34 @@ using GValidator.Validation.Attributes;
 using GValidator.Validation.Builder;
 using GValidator.Validation.Context;
 using GValidator.Validation.Models;
-using GValidator.Validation.Progress;
+using UnityEngine;
+using Object = UnityEngine.Object;
 
 [Validator("Positive Health")]
-public sealed class PositiveHealthValidator : IValidator
+public sealed class PositiveHealthValidator : IAssetValidator
 {
-    public async Task ValidateAsync(
-        IValidationBuilder validation,
-        IValidationContext context,
-        IProgressScope progress)
+    public bool CanValidate(Object asset)
     {
-        var assets = await context.AssetsProvider.GetAssetsAsync(
-            "t:ScriptableObject",
-            context.FrameSlicer);
+        return asset is CharacterSettings;
+    }
 
-        for (int index = 0; index < assets.Count; index++)
+    public Task ValidateAsync(
+        Object asset,
+        IValidationBuilder validation,
+        IValidationContext context)
+    {
+        CharacterSettings settings = (CharacterSettings)asset;
+        if (settings.StartingHealth <= 0)
         {
-            if (assets[index] is CharacterSettings settings)
-            {
-                validation.SetObject(settings);
-
-                if (settings.StartingHealth <= 0)
-                {
-                    validation.Error("Starting Health must be positive");
-                }
-
-                validation.ClearObject();
-            }
-
-            await context.FrameSlicer.TrySlice();
+            validation.Error("Starting Health must be positive");
         }
 
-        progress.Report(1f, "Checked character settings");
+        return Task.CompletedTask;
     }
 }
 ```
 
-Use `AssetsProvider.GetAssetsAsync(filter, context.FrameSlicer)` so selected asset sources and the current window scope are honored. Call `SetObject` before reporting a message and `ClearObject` after validating that object. Report progress with `IProgressScope`, and call `FrameSlicer.TrySlice()` periodically in long-running loops.
+The dispatcher handles source/scope filtering, object context, progress, and frame slicing. In long checks, call `context.FrameSlicer.TrySlice()` periodically. Implement `IValidator` only for standalone checks that need to manage their own workflow.
 
 ### Reuse the ScriptableObject validator base
 
@@ -181,4 +176,4 @@ public sealed class CharacterSettingsValidator : ScriptableObjectValidator<Chara
 }
 ```
 
-The base finds matching assets through the configured sources and manages the current object context and progress. Put the concrete validator in an Editor-only assembly.
+The Assets dispatcher passes matching ScriptableObjects to the base, which calls your `Validate` method. Put the concrete validator in an Editor-only assembly.

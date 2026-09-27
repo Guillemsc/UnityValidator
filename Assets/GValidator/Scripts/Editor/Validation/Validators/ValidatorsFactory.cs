@@ -20,18 +20,29 @@ namespace GValidator.Validation.Providers
 
                 foreach (var type in types)
                 {
-                    var isValidator = IsConcreteValidator(type);
-                    if (!isValidator) continue;
-                        
-                    IValidator? validator = CreateValidator(type);
-                    if (validator == null) continue;
-                        
-                    ValidatorAttribute? attribute = GetValidatorAttribute(type);
+                    bool isStandalone = IsConcreteValidator(type);
+                    bool isAssetValidator = IsConcreteAssetValidator(type);
+                    if (!isStandalone && !isAssetValidator) continue;
 
+                    ValidatorAttribute? attribute = GetValidatorAttribute(type);
                     string name = attribute?.Name ?? type.Name;
-                        
-                    ValidatorEntry entry = new(validator, name);
-                    validators.Add(entry);
+
+                    if (isStandalone)
+                    {
+                        IValidator? validator = CreateValidator(type);
+                        if (validator != null)
+                        {
+                            validators.Add(new ValidatorEntry(validator, name));
+                        }
+                    }
+                    else
+                    {
+                        IAssetValidator? validator = CreateAssetValidator(type);
+                        if (validator != null)
+                        {
+                            validators.Add(new ValidatorEntry(validator, name));
+                        }
+                    }
                 }
             }
 
@@ -44,6 +55,15 @@ namespace GValidator.Validation.Providers
             if(!typeof(IValidator).IsAssignableFrom(type)) return false;
             if(type is not { IsInterface: false, IsAbstract: false, ContainsGenericParameters: false }) return false;
             
+            return true;
+        }
+
+        static bool IsConcreteAssetValidator(Type? type)
+        {
+            if (type == null) return false;
+            if (!typeof(IAssetValidator).IsAssignableFrom(type)) return false;
+            if (type.IsInterface || type.IsAbstract || type.ContainsGenericParameters) return false;
+
             return true;
         }
         
@@ -68,6 +88,18 @@ namespace GValidator.Validation.Providers
                 // A broken validator must not prevent unrelated assemblies from
                 // being scanned. It is simply not discoverable until it can be
                 // constructed successfully.
+                return null;
+            }
+        }
+
+        static IAssetValidator? CreateAssetValidator(Type validatorType)
+        {
+            try
+            {
+                return Activator.CreateInstance(validatorType, true) as IAssetValidator;
+            }
+            catch (Exception)
+            {
                 return null;
             }
         }

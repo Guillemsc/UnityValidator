@@ -27,23 +27,43 @@ namespace GValidator.Validation.AssetSources
             IFrameSlicer frameSlicer)
         {
             List<Object> ret = new();
-            
-            string[] assetGuids = AssetDatabase.FindAssets(filter, searchInFolders);
 
-            foreach (var guid in assetGuids)
+            if (string.IsNullOrWhiteSpace(_sceneGuid)) return ret;
+
+            bool hasSearchFolder = searchInFolders.Length == 0;
+            foreach (string folder in searchInFolders)
             {
-                await frameSlicer.TrySlice();
-                
-                if (guid != _sceneGuid) continue;
-                
-                Object asset = AssetDatabase.LoadMainAssetAtPath(_scenePath);
-                
-                if (asset != null)
+                string folderPrefix = folder.TrimEnd('/', '\\') + "/";
+                if (_scenePath.StartsWith(folderPrefix, System.StringComparison.OrdinalIgnoreCase))
                 {
-                    ret.Add(asset);
+                    hasSearchFolder = true;
+                    break;
                 }
-                
-                break;
+            }
+
+            if (!hasSearchFolder) return ret;
+
+            if (!string.IsNullOrWhiteSpace(filter))
+            {
+                string[] matchingGuids = AssetDatabase.FindAssets(filter, searchInFolders);
+                bool matchesFilter = false;
+                foreach (string guid in matchingGuids)
+                {
+                    await frameSlicer.TrySlice();
+
+                    if (guid != _sceneGuid) continue;
+
+                    matchesFilter = true;
+                    break;
+                }
+
+                if (!matchesFilter) return ret;
+            }
+
+            Object sceneAsset = AssetDatabase.LoadMainAssetAtPath(_scenePath);
+            if (sceneAsset != null)
+            {
+                ret.Add(sceneAsset);
             }
 
             return ret;

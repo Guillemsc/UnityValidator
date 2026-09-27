@@ -1,13 +1,10 @@
 using System;
-using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
 using GValidator.Validation.Attributes;
 using GValidator.Validation.Builder;
 using GValidator.Validation.Context;
 using GValidator.Validation.Models;
-using GValidator.Validation.Progress;
-using GValidator.Validation.SceneManagement;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
@@ -16,7 +13,7 @@ using Object = UnityEngine.Object;
 namespace GValidator.Validators.UnityEvents
 {
     [Validator("Invalid Unity Events")]
-    public sealed class UnityEventValidator : IValidator
+    public sealed class UnityEventValidator : IAssetValidator
     {
         const int EventDefinedMode = 0;
         const int VoidMode = 1;
@@ -27,133 +24,13 @@ namespace GValidator.Validators.UnityEvents
         const int BoolMode = 6;
         const int OffCallState = 0;
 
+        public bool CanValidate(Object asset)
+        {
+            return asset is MonoBehaviour or ScriptableObject;
+        }
+
         public async Task ValidateAsync(
-            IValidationBuilder validation,
-            IValidationContext context,
-            IProgressScope progress)
-        {
-            IProgressScope prefabProgress = progress.Step(0, 3, "Prefabs");
-            prefabProgress.Report(0f);
-            await ValidatePrefabsAsync(validation, context, prefabProgress);
-
-            IProgressScope scriptableProgress = progress.Step(1, 3, "ScriptableObjects");
-            scriptableProgress.Report(0f);
-            await ValidateScriptableObjectsAsync(validation, context, scriptableProgress);
-
-            IProgressScope sceneProgress = progress.Step(2, 3, "Scenes");
-            sceneProgress.Report(0f);
-            await ValidateScenesAsync(validation, context, sceneProgress);
-        }
-
-        async Task ValidatePrefabsAsync(
-            IValidationBuilder validation,
-            IValidationContext context,
-            IProgressScope progress)
-        {
-            List<Object> prefabs = await context.AssetsProvider.GetAssetsAsync("t:Prefab");
-
-            for (int index = 0; index < prefabs.Count; index++)
-            {
-                Object prefab = prefabs[index];
-                IProgressScope prefabProgress = progress.Step(index, prefabs.Count, prefab.name);
-                prefabProgress.Report(0f);
-
-                if (prefab is GameObject prefabRoot)
-                {
-                    await ValidateGameObjectHierarchyAsync(prefabRoot, validation, context);
-                }
-
-                prefabProgress.Report(1f);
-                await context.FrameSlicer.TrySlice();
-            }
-
-            progress.Report(1f);
-        }
-
-        async Task ValidateScriptableObjectsAsync(
-            IValidationBuilder validation,
-            IValidationContext context,
-            IProgressScope progress)
-        {
-            List<Object> assets = await context.AssetsProvider.GetAssetsAsync("t:ScriptableObject");
-
-            for (int index = 0; index < assets.Count; index++)
-            {
-                Object asset = assets[index];
-                IProgressScope assetProgress = progress.Step(index, assets.Count, asset.name);
-                assetProgress.Report(0f);
-
-                if (asset is ScriptableObject)
-                {
-                    await ValidateObjectAsync(asset, validation, context);
-                }
-
-                assetProgress.Report(1f);
-                await context.FrameSlicer.TrySlice();
-            }
-
-            progress.Report(1f);
-        }
-
-        async Task ValidateScenesAsync(
-            IValidationBuilder validation,
-            IValidationContext context,
-            IProgressScope progress)
-        {
-            List<Object> scenes = await context.AssetsProvider.GetAssetsAsync("t:Scene");
-
-            for (int index = 0; index < scenes.Count; index++)
-            {
-                Object sceneAsset = scenes[index];
-                IProgressScope sceneItemProgress = progress.Step(index, scenes.Count, sceneAsset.name);
-                sceneItemProgress.Report(0f);
-
-                if (sceneAsset is SceneAsset)
-                {
-                    string scenePath = AssetDatabase.GetAssetPath(sceneAsset);
-                    if (!string.IsNullOrWhiteSpace(scenePath))
-                    {
-                        using SceneLoadScope sceneLoadScope = new(scenePath);
-                        GameObject[] rootGameObjects = sceneLoadScope.Scene.GetRootGameObjects();
-
-                        for (int rootIndex = 0; rootIndex < rootGameObjects.Length; rootIndex++)
-                        {
-                            GameObject rootGameObject = rootGameObjects[rootIndex];
-                            await ValidateGameObjectHierarchyAsync(rootGameObject, validation, context);
-                            await context.FrameSlicer.TrySlice();
-                        }
-                    }
-                }
-
-                sceneItemProgress.Report(1f);
-                await context.FrameSlicer.TrySlice();
-            }
-
-            progress.Report(1f);
-        }
-
-        async Task ValidateGameObjectHierarchyAsync(
-            GameObject root,
-            IValidationBuilder validation,
-            IValidationContext context)
-        {
-            MonoBehaviour[] behaviours = root.GetComponentsInChildren<MonoBehaviour>(true);
-
-            foreach (MonoBehaviour behaviour in behaviours)
-            {
-                if (behaviour != null)
-                {
-                    await ValidateObjectAsync(behaviour, validation, context);
-                }
-
-                await context.FrameSlicer.TrySlice();
-            }
-        }
-
-        async Task ValidateObjectAsync(
-            Object target,
-            IValidationBuilder validation,
-            IValidationContext context)
+            Object target, IValidationBuilder validation, IValidationContext context)
         {
             SerializedObject serializedObject = new(target);
             SerializedProperty property = serializedObject.GetIterator();
@@ -169,14 +46,13 @@ namespace GValidator.Validators.UnityEvents
                     continue;
                 }
 
-                ValidateEvent(property.Copy(), field.FieldType, target, validation);
+                ValidateEvent(property.Copy(), field.FieldType, validation);
             }
         }
 
         static void ValidateEvent(
             SerializedProperty eventProperty,
             Type eventType,
-            Object owner,
             IValidationBuilder validation)
         {
             SerializedProperty? calls = eventProperty.FindPropertyRelative("m_PersistentCalls.m_Calls");
@@ -196,16 +72,14 @@ namespace GValidator.Validators.UnityEvents
 
                 SerializedProperty? targetProperty = call.FindPropertyRelative("m_Target");
                 Object? listenerTarget = targetProperty?.objectReferenceValue;
-                string listenerPath = $"{eventProperty.propertyPath}.m_PersistentCalls.m_Calls.Array.data[{index}]";
                 string? issue = GetListenerIssue(call, eventType, listenerTarget);
                 if (issue == null)
                 {
                     continue;
                 }
 
-                validation.SetObject(owner);
-                validation.Error(issue);
-                validation.ClearObject();
+                string listenerPath = $"{eventProperty.propertyPath}.m_PersistentCalls.m_Calls.Array.data[{index}]";
+                validation.Error($"{listenerPath}: {issue}");
             }
         }
 

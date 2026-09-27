@@ -29,6 +29,7 @@ namespace GValidator.Validation.AssetSources
                 
                 string path = AssetDatabase.GUIDToAssetPath(guid);
                 if(string.IsNullOrWhiteSpace(path)) continue;
+                if (AssetDatabase.IsValidFolder(path)) continue;
                 
                 Object asset = AssetDatabase.LoadMainAssetAtPath(path);
                 if (asset == null) continue;
