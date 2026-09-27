@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using GValidator.Configuration;
 using GValidator.Models;
 using GValidator.Providers;
 using GValidator.Validation.Assets;
 using GValidator.Validation.Context;
+using GValidator.Validation.Ci;
 using GValidator.Validation.FrameSlicing;
 using GValidator.Validation.Messages;
 using GValidator.Validation.Models;
@@ -45,8 +47,11 @@ namespace GValidator.Window.Sections
             _references.RunAllButton.clicked += OnRunAllClicked;
             _references.RunScopedButton.clicked += OnRunScopedClicked;
             _references.ClearResultsButton.clicked += OnClearClicked;
+            _references.ExportResultsButton.clicked += OnExportResultsClicked;
             _references.GlobalConfigurationButton.clicked += OnGlobalConfigurationClicked;
             _references.ClearSearchScopeButton.clicked += OnClearSearchScopeClicked;
+
+            SetExportResultsButtonEnabled(false);
         }
 
         void SetupToggles()
@@ -146,6 +151,22 @@ namespace GValidator.Window.Sections
             _currentValidationProvider.Clear();
         }
 
+        void OnExportResultsClicked()
+        {
+            IValidationResult? validationResult = _currentValidationProvider.ValidationResult;
+            if (validationResult == null) return;
+
+            string path = EditorUtility.SaveFilePanel(
+                "Export Validation Results",
+                string.Empty,
+                "gvalidator-results.xml",
+                "xml");
+            if (string.IsNullOrEmpty(path)) return;
+
+            string junitXml = ValidationReportWriter.ToJUnit(validationResult);
+            File.WriteAllText(path, junitXml);
+        }
+
         void OnGlobalConfigurationClicked()
         {
             UnityEngine.Object configuration = GlobalConfigurationProvider.GetOrCreate();
@@ -158,6 +179,7 @@ namespace GValidator.Window.Sections
             _references.InfoToggle.text = validationResult.InfoCount.ToString();
             _references.WarningToggle.text = validationResult.WarningCount.ToString();
             _references.ErrorToggle.text = validationResult.ErrorCount.ToString();
+            SetExportResultsButtonEnabled(true);
         }
         
         void OnValidationCleared()
@@ -165,6 +187,12 @@ namespace GValidator.Window.Sections
             _references.InfoToggle.text = 0.ToString();
             _references.WarningToggle.text = 0.ToString();
             _references.ErrorToggle.text = 0.ToString();
+            SetExportResultsButtonEnabled(false);
+        }
+
+        void SetExportResultsButtonEnabled(bool enabled)
+        {
+            _references.ExportResultsButton.SetEnabled(enabled);
         }
     }
 }

@@ -30,6 +30,7 @@ namespace GValidator.Models
         public VisualElement ResultsPane { get; private set; } = null!;
         public TwoPaneSplitView ResultsDetailSplit { get; private set; } = null!;
         public MultiColumnListView ResultsList { get; private set; } = null!;
+        public ToolbarButton ExportResultsButton { get; private set; } = null!;
         public VisualElement DetailPanel { get; private set; } = null!;
         public ScrollView DetailMessageScroll { get; private set; } = null!;
         public Label DetailMessageLabel { get; private set; } = null!;
@@ -62,6 +63,7 @@ namespace GValidator.Models
             ResultsPane = Get<VisualElement>(root, "results-pane");
             ResultsDetailSplit = Get<TwoPaneSplitView>(root, "results-detail-split");
             ResultsList = Get<MultiColumnListView>(root, "results-list");
+            ExportResultsButton = Get<ToolbarButton>(root, "export-results-button");
             DetailPanel = Get<VisualElement>(root, "detail-panel");
             DetailMessageScroll = Get<ScrollView>(root, "detail-message-scroll");
             DetailMessageLabel = Get<Label>(root, "detail-message-label");

@@ -37,7 +37,7 @@ namespace GValidator.Validation.Ci
                 suite.Add(testCase);
             }
 
-            return new XDocument(suite).ToString(SaveOptions.DisableFormatting);
+            return new XDocument(suite).ToString();
         }
 
         static string GetObjectDescription(ValidationMessage message)
