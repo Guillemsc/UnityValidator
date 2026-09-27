@@ -11,6 +11,7 @@ namespace GValidator.Models
         public ToolbarButton RunAllButton { get; private set; } = null!;
         public ToolbarButton RunScopedButton { get; private set; } = null!;
         public ToolbarButton ClearResultsButton { get; private set; } = null!;
+        public ToolbarButton GlobalConfigurationButton { get; private set; } = null!;
         public ToolbarButton ClearSearchScopeButton { get; private set; } = null!;
         public Image SearchScopeIcon { get; private set; } = null!;
         public Label SearchScopeLabel { get; private set; } = null!;
@@ -42,6 +43,7 @@ namespace GValidator.Models
             RunAllButton = Get<ToolbarButton>(root, "run-all-button");
             RunScopedButton = Get<ToolbarButton>(root, "run-scoped-button");
             ClearResultsButton = Get<ToolbarButton>(root, "clear-results-button");
+            GlobalConfigurationButton = Get<ToolbarButton>(root, "global-configuration-button");
             ClearSearchScopeButton = Get<ToolbarButton>(root, "clear-search-scope-button");
             SearchScopeIcon = Get<Image>(root, "search-scope-icon");
             SearchScopeLabel = Get<Label>(root, "search-scope-label");

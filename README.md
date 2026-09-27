@@ -56,6 +56,7 @@ Or add the OpenUPM scoped registry and package to `Packages/manifest.json`:
 Open **Tools → GValidator → Validation Window**. The window lets you:
 
 - Select which asset sources and validators to run.
+- Create or locate the global configuration asset with **Global Configuration**.
 - Run across all of `Assets/`, a selected folder, or a selected file.
 - View messages by severity and inspect the validator and object path for the selected result.
 - Use **Run Scoped** to rerun a folder/file scope or **Clear Scope** to reset the scope.

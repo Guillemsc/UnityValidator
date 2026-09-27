@@ -24,9 +24,8 @@ namespace GValidator.Windows
         readonly GValidatorWindowReferences _references = new();
         ToolbarSection? _toolbarSection;
         string? _pendingScopePath;
-        bool _pendingScopeIsFile;
 
-        [MenuItem("Tools/GValidator/Validation Window")]
+        [MenuItem("Window/GValidator/Validation Window")]
         public static void Open()
         {
             var window = GetWindow<GValidatorWindow>();
@@ -38,23 +37,22 @@ namespace GValidator.Windows
         {
             if (asset == null) return;
 
-            OpenAndValidateScope(AssetDatabase.GetAssetPath(asset), true);
+            OpenAndValidateScope(AssetDatabase.GetAssetPath(asset));
         }
 
         public static void OpenAndValidateFolder(string folderPath)
         {
             if (string.IsNullOrWhiteSpace(folderPath) || !AssetDatabase.IsValidFolder(folderPath)) return;
 
-            OpenAndValidateScope(folderPath, false);
+            OpenAndValidateScope(folderPath);
         }
 
-        static void OpenAndValidateScope(string scopePath, bool isFile)
+        static void OpenAndValidateScope(string scopePath)
         {
             GValidatorWindow window = GetWindow<GValidatorWindow>();
             window.SetWindowTitle();
             window.minSize = new Vector2(640, 360);
             window._pendingScopePath = scopePath;
-            window._pendingScopeIsFile = isFile;
             window.Show();
             window.Focus();
             window.TryRunPendingAssetValidation();
@@ -139,9 +137,8 @@ namespace GValidator.Windows
             if (_toolbarSection == null || string.IsNullOrWhiteSpace(_pendingScopePath)) return;
 
             string scopePath = _pendingScopePath!;
-            bool isFile = _pendingScopeIsFile;
             _pendingScopePath = null;
-            await _toolbarSection.RunScopeValidationAsync(scopePath, isFile);
+            await _toolbarSection.RunScopeValidationAsync(scopePath);
         }
     }   
 }

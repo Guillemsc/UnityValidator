@@ -3,6 +3,7 @@
         <uie:Toolbar name="window-toolbar" class="window-toolbar">
             <uie:ToolbarButton name="run-all-button" text="Run All" class="unity-toolbar-button toolbar-button"/>
             <uie:ToolbarButton name="clear-results-button" text="Clear" class="unity-toolbar-button toolbar-button"/>
+            <uie:ToolbarButton name="global-configuration-button" text="Global Configuration" tooltip="Create or locate the global GValidator configuration" class="unity-toolbar-button toolbar-button"/>
             <ui:VisualElement style="flex-direction: row; align-items: center; align-self: center;">
                 <ui:Label text="Scope:" style="margin-left: 4px; margin-right: 4px; -unity-text-align: middle-left;"/>
                 <ui:Image name="search-scope-icon" style="width: 16px; height: 16px; margin-right: 3px; align-self: center;"/>

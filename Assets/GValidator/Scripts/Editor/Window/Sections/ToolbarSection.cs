@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 using GValidator.Models;
 using GValidator.Providers;
@@ -24,8 +23,7 @@ namespace GValidator.Window.Sections
         readonly SelectedValidatorsProvider _validatorsProvider;
         readonly CurrentValidationProvider _currentValidationProvider;
         readonly SelectedAssetsSourcesProvider _assetsSourcesProvider;
-        string _currentScopePath = "Assets";
-        bool _currentScopeIsFile;
+        AssetValidationScope _currentScope = AssetValidationScope.FromPath();
 
         public ToolbarSection(
             GValidatorWindowReferences references, 
@@ -46,6 +44,7 @@ namespace GValidator.Window.Sections
             _references.RunAllButton.clicked += OnRunAllClicked;
             _references.RunScopedButton.clicked += OnRunScopedClicked;
             _references.ClearResultsButton.clicked += OnClearClicked;
+            _references.GlobalConfigurationButton.clicked += OnGlobalConfigurationClicked;
             _references.ClearSearchScopeButton.clicked += OnClearSearchScopeClicked;
         }
 
@@ -55,56 +54,44 @@ namespace GValidator.Window.Sections
             _references.WarningToggle.style.backgroundImage = MessageTypeIconProvider.Get(ValidationMessageType.Warning);
             _references.ErrorToggle.style.backgroundImage = MessageTypeIconProvider.Get(ValidationMessageType.Error);
 
-            SetSearchScopeDisplay("Assets", false);
+            SetSearchScopeDisplay(_currentScope);
         }
 
         async void OnRunAllClicked()
         {
-            await RunValidationAsync(null, false);
+            await RunValidationAsync(AssetValidationScope.FromPath());
         }
 
         void OnClearSearchScopeClicked()
         {
-            _currentScopePath = "Assets";
-            _currentScopeIsFile = false;
-            SetSearchScopeDisplay("Assets", false);
+            _currentScope = AssetValidationScope.FromPath();
+            SetSearchScopeDisplay(_currentScope);
         }
 
         async void OnRunScopedClicked()
         {
-            await RunValidationAsync(_currentScopePath, _currentScopeIsFile);
+            await RunValidationAsync(_currentScope);
         }
 
-        public Task RunScopeValidationAsync(string scopePath, bool isFile)
+        public Task RunScopeValidationAsync(string scopePath)
         {
-            return RunValidationAsync(scopePath, isFile);
+            return RunValidationAsync(AssetValidationScope.FromPath(scopePath));
         }
 
-        async Task RunValidationAsync(string? scopePath, bool isFile)
+        async Task RunValidationAsync(AssetValidationScope scope)
         {
             IReadOnlyList<IValidator> validators = _validatorsProvider.GetRunnableValidators();
 
-            string normalizedScopePath = string.IsNullOrWhiteSpace(scopePath)
-                ? "Assets"
-                : scopePath!.Replace('\\', '/').TrimEnd('/');
-            string[] searchInFolders = isFile
-                ? new[] { Path.GetDirectoryName(normalizedScopePath)?.Replace('\\', '/') ?? "Assets" }
-                : new[] { normalizedScopePath };
-            string displayScope = isFile
-                ? normalizedScopePath
-                : normalizedScopePath.TrimEnd('/') + "/";
-
-            _currentScopePath = normalizedScopePath;
-            _currentScopeIsFile = isFile;
-            SetSearchScopeDisplay(normalizedScopePath, isFile, displayScope);
+            _currentScope = scope;
+            SetSearchScopeDisplay(scope);
 
             FrameSlicer frameSlicer = new();
             
             AssetsProvider assetsProvider = new(
                 _assetsSourcesProvider.GetSelected(),
                 frameSlicer,
-                searchInFolders,
-                isFile ? normalizedScopePath : null);
+                scope.SearchInFolders,
+                scope.TargetAssetPath);
 
             ValidationContext validationContext = new(
                 validators,
@@ -123,25 +110,30 @@ namespace GValidator.Window.Sections
             }
         }
 
-        void SetSearchScopeDisplay(string scopePath, bool isFile, string? displayScope = null)
+        void SetSearchScopeDisplay(AssetValidationScope scope)
         {
-            displayScope ??= isFile ? scopePath : scopePath.TrimEnd('/') + "/";
-            _references.SearchScopeLabel.text = displayScope;
-            _references.SearchScopeLabel.tooltip = displayScope;
-            _references.ClearSearchScopeButton.style.display = scopePath == "Assets"
+            _references.SearchScopeLabel.text = scope.DisplayPath;
+            _references.SearchScopeLabel.tooltip = scope.DisplayPath;
+            _references.ClearSearchScopeButton.style.display = scope.IsAllAssets
                 ? UnityEngine.UIElements.DisplayStyle.None
                 : UnityEngine.UIElements.DisplayStyle.Flex;
-            _references.RunScopedButton.style.display = scopePath == "Assets"
+            _references.RunScopedButton.style.display = scope.IsAllAssets
                 ? UnityEngine.UIElements.DisplayStyle.None
                 : UnityEngine.UIElements.DisplayStyle.Flex;
 
-            Texture? icon = isFile ? AssetDatabase.GetCachedIcon(scopePath) : null;
+            Texture? icon = scope.TargetAssetPath == null
+                ? null
+                : AssetDatabase.GetCachedIcon(scope.TargetAssetPath);
 
-            if (icon == null && isFile)
+            bool shouldLoadAssetIcon = icon == null && scope.TargetAssetPath != null;
+            
+            if (shouldLoadAssetIcon)
             {
-                UnityEngine.Object asset = AssetDatabase.LoadMainAssetAtPath(scopePath);
+                UnityEngine.Object asset = AssetDatabase.LoadMainAssetAtPath(scope.TargetAssetPath);
                 if (asset != null)
+                {
                     icon = EditorGUIUtility.ObjectContent(asset, asset.GetType()).image;
+                }
             }
 
             _references.SearchScopeIcon.image = icon ?? EditorGUIUtility.IconContent("Folder Icon").image;
@@ -150,6 +142,13 @@ namespace GValidator.Window.Sections
         void OnClearClicked()
         {
             _currentValidationProvider.Clear();
+        }
+
+        void OnGlobalConfigurationClicked()
+        {
+            UnityEngine.Object configuration = GlobalConfigurationProvider.GetOrCreate();
+            Selection.activeObject = configuration;
+            EditorGUIUtility.PingObject(configuration);
         }
 
         void OnValidationChanged(IValidationResult validationResult)
