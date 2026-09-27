@@ -1,0 +1,9 @@
+# Example content is maintained in the repository, but not shipped in the package.
+Examples/
+Examples.meta
+
+# Exclude Unity test assemblies and their Unity metadata.
+Scripts/Tests/
+Scripts/Tests.meta
+Scripts/Tests~
+Scripts/Tests~.meta

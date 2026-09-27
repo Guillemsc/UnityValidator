@@ -10,7 +10,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 PACKAGE_ROOT = Path("Assets/GValidator")
-EXCLUDED_DIRECTORIES = {"examples", "test", "tests"}
+EXCLUDED_DIRECTORIES = {"examples", "test", "tests", "tests~"}
 VERSION_PATTERN = re.compile(
     r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)"
     r"(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?"
