@@ -4,7 +4,6 @@ using GValidator.Validation.Attributes;
 using GValidator.Validation.Builder;
 using GValidator.Validation.Context;
 using GValidator.Validation.Models;
-using GValidator.Validation.Objects;
 using GValidator.Validation.Progress;
 using GValidator.Validation.SceneManagement;
 using UnityEditor;
@@ -105,7 +104,7 @@ namespace GValidator.Validators.MissingScripts
             {
                 GameObject gameObject = item.gameObject;
                 int missingScriptCount = GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(gameObject);
-                validation.SetObject(gameObject, ObjectPathUtility.GetPath(gameObject));
+                validation.SetObject(gameObject);
                 if (missingScriptCount > 0)
                 {
                     validation.Error($"{missingScriptCount} missing script(s) on '{gameObject.name}'");

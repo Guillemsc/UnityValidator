@@ -1,6 +1,9 @@
 using System.Collections.Generic;
 using GValidator.Validation.Messages;
 using GValidator.Validation.Result;
+#if UNITY_EDITOR
+using GValidator.Validation.Objects;
+#endif
 using Object = UnityEngine.Object;
 
 namespace GValidator.Validation.Builder
@@ -63,10 +66,14 @@ namespace GValidator.Validation.Builder
             _currentValidatorName = string.Empty;
         }
 
-        public void SetObject(Object obj, string? objectPath = null)
+        public void SetObject(Object obj)
         {
             _currentObject = obj;
-            _currentObjectPath = objectPath;
+#if UNITY_EDITOR
+            _currentObjectPath = ObjectPathUtility.GetPath(obj);
+#else
+            _currentObjectPath = null;
+#endif
         }
 
         public void ClearObject()

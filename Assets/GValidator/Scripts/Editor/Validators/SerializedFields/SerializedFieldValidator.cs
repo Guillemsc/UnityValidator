@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using GValidator.Validation.Builder;
 using GValidator.Validation.Context;
 using GValidator.Validation.Models;
-using GValidator.Validation.Objects;
 using GValidator.Validation.Progress;
 using GValidator.Validation.SceneManagement;
 using UnityEditor;
@@ -57,7 +56,7 @@ namespace GValidator.Validators.SerializedFields
                 }
                 else if (asset is ScriptableObject)
                 {
-                    validation.SetObject(asset, ObjectPathUtility.GetPath(asset));
+                    validation.SetObject(asset);
                     await ValidateObjectAsync(asset, validation, context);
                     validation.ClearObject();
                 }
@@ -103,7 +102,7 @@ namespace GValidator.Validators.SerializedFields
             {
                 if (behaviour != null)
                 {
-                    validation.SetObject(behaviour, ObjectPathUtility.GetPath(behaviour));
+                    validation.SetObject(behaviour);
                     await ValidateObjectAsync(behaviour, validation, context);
                     validation.ClearObject();
                 }
@@ -143,7 +142,7 @@ namespace GValidator.Validators.SerializedFields
                 IProgressScope behaviourProgress = progress.Step(index, behaviours.Count, behaviour.name);
                 behaviourProgress.Report(0f);
 
-                validation.SetObject(behaviour, ObjectPathUtility.GetPath(behaviour));
+                validation.SetObject(behaviour);
                 await ValidateObjectAsync(behaviour, validation, context);
                 validation.ClearObject();
 

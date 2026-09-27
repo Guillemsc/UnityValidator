@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using GValidator.Validation.Builder;
 using GValidator.Validation.Context;
 using GValidator.Validation.Models;
-using GValidator.Validation.Objects;
 using GValidator.Validation.Progress;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -39,7 +38,7 @@ namespace GValidator.Validators.ScriptableObjects
                 IProgressScope assetProgress = progress.Step(index, matchingAssets.Count, asset.name);
                 assetProgress.Report(0f);
 
-                validation.SetObject(asset, ObjectPathUtility.GetPath(asset));
+                validation.SetObject(asset);
                 Validate(asset, validation);
                 validation.ClearObject();
 
