@@ -1,0 +1,67 @@
+name: Release preview Unity package
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Base version (for example, 6.0.0); preview number is assigned automatically'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: unity-package-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    if: github.ref_type == 'branch'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Determine next preview version from remote tags
+        id: preview
+        env:
+          BASE_VERSION: ${{ inputs.version }}
+        run: |
+          version=$(python3 scripts/release_package.py next-preview "$BASE_VERSION")
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Releasing v$version"
+
+      - name: Update and commit package version
+        env:
+          VERSION: ${{ steps.preview.outputs.version }}
+        run: |
+          python3 scripts/release_package.py version "$VERSION"
+          git add Assets/GValidator/package.json
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          if git diff --cached --quiet; then
+            echo "Assets/GValidator/package.json already has version $VERSION; using the current commit"
+          else
+            git commit -m "Release v${VERSION}"
+          fi
+
+      - name: Build Unity package without examples and tests
+        env:
+          VERSION: ${{ steps.preview.outputs.version }}
+        run: |
+          python3 scripts/release_package.py build "dist/GValidator-${VERSION}.unitypackage"
+
+      - name: Push version commit and publish prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.preview.outputs.version }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          git push origin "HEAD:refs/heads/${BRANCH}"
+          gh release create "v${VERSION}" "dist/GValidator-${VERSION}.unitypackage" \
+            --target "$(git rev-parse HEAD)" \
+            --title "v${VERSION}" \
+            --prerelease \
+            --generate-notes

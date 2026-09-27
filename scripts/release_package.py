@@ -16,6 +16,28 @@ VERSION_PATTERN = re.compile(
     r"(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?"
     r"(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$"
 )
+BASE_VERSION_PATTERN = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$")
+
+
+def next_preview_version(base_version: str) -> str:
+    if not BASE_VERSION_PATTERN.fullmatch(base_version):
+        raise ValueError(f"Invalid base version: {base_version}")
+
+    tag_prefix = f"v{base_version}-preview."
+    remote_tags = subprocess.check_output(
+        ["git", "ls-remote", "--tags", "origin", f"refs/tags/{tag_prefix}*"],
+        cwd=ROOT,
+        text=True,
+    )
+
+    highest_preview = 0
+    for line in remote_tags.splitlines():
+        tag = line.split("\t", 1)[1].removeprefix("refs/tags/")
+        suffix = tag.removeprefix(tag_prefix)
+        if tag.startswith(tag_prefix) and suffix.isdecimal() and not suffix.startswith("0"):
+            highest_preview = max(highest_preview, int(suffix))
+
+    return f"{base_version}-preview.{highest_preview + 1}"
 
 
 def update_version(version: str) -> None:
@@ -94,12 +116,15 @@ def main() -> None:
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("version").add_argument("version")
     commands.add_parser("build").add_argument("output", type=Path)
+    commands.add_parser("next-preview").add_argument("base_version")
     args = parser.parse_args()
 
     if args.command == "version":
         update_version(args.version)
-    else:
+    elif args.command == "build":
         build_unitypackage(args.output.resolve())
+    else:
+        print(next_preview_version(args.base_version))
 
 
 if __name__ == "__main__":
