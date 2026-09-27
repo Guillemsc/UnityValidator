@@ -20,9 +20,7 @@ namespace GValidator.Validators.ScriptableObjects
             IValidationContext context,
             IProgressScope progress)
         {
-            List<Object> assets = await context.AssetsProvider.GetAssetsAsync(
-                "t:ScriptableObject",
-                context.FrameSlicer);
+            List<Object> assets = await context.AssetsProvider.GetAssetsAsync("t:ScriptableObject");
 
             List<TScriptableObject> matchingAssets = new();
             for (int index = 0; index < assets.Count; index++)

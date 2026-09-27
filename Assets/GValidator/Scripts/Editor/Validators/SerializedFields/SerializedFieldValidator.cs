@@ -43,7 +43,7 @@ namespace GValidator.Validators.SerializedFields
             IValidationContext context,
             IProgressScope progress)
         {
-            List<Object> assets = await context.AssetsProvider.GetAssetsAsync(filter, context.FrameSlicer);
+            List<Object> assets = await context.AssetsProvider.GetAssetsAsync(filter);
 
             for (int index = 0; index < assets.Count; index++)
             {
@@ -74,7 +74,7 @@ namespace GValidator.Validators.SerializedFields
             IValidationContext context,
             IProgressScope progress)
         {
-            List<Object> scenes = await context.AssetsProvider.GetAssetsAsync("t:Scene", context.FrameSlicer);
+            List<Object> scenes = await context.AssetsProvider.GetAssetsAsync("t:Scene");
 
             for (int index = 0; index < scenes.Count; index++)
             {

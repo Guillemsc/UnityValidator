@@ -99,15 +99,18 @@ namespace GValidator.Window.Sections
             _currentScopeIsFile = isFile;
             SetSearchScopeDisplay(normalizedScopePath, isFile, displayScope);
 
+            FrameSlicer frameSlicer = new();
+            
             AssetsProvider assetsProvider = new(
                 _assetsSourcesProvider.GetSelected(),
+                frameSlicer,
                 searchInFolders,
                 isFile ? normalizedScopePath : null);
 
             ValidationContext validationContext = new(
                 validators,
                 assetsProvider,
-                new FrameSlicer());
+                frameSlicer);
             
             ValidationRunner validationRunner = new(CancellableProgressBarProgressSink.Instance);
             try

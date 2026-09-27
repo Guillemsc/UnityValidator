@@ -10,20 +10,23 @@ namespace GValidator.Validation.Assets
     public sealed class AssetsProvider : IAssetsProvider
     {
         readonly IReadOnlyList<IAssetsSource> _assetsSources;
+        readonly IFrameSlicer _frameSlicer;
         readonly string[] _searchInFolders;
         readonly string? _targetAssetPath;
-
+        
         public AssetsProvider(
             IReadOnlyList<IAssetsSource> assetsSources,
-            string[] searchInFolders,
+            IFrameSlicer frameSlicer,
+            string[] searchInFolders, 
             string? targetAssetPath = null)
         {
             _assetsSources = assetsSources;
+            _frameSlicer = frameSlicer;
             _searchInFolders = searchInFolders;
             _targetAssetPath = targetAssetPath;
         }
 
-        public async Task<List<Object>> GetAssetsAsync(string filter, IFrameSlicer frameSlicer)
+        public async Task<List<Object>> GetAssetsAsync(string filter)
         {
             List<Object> ret = new();
 
@@ -32,11 +35,11 @@ namespace GValidator.Validation.Assets
                 var assets = await source.GetAssetsAsync(
                     filter,
                     _searchInFolders,
-                    frameSlicer);
+                    _frameSlicer);
 
                 foreach (var asset in assets)
                 {
-                    await frameSlicer.TrySlice();
+                    await _frameSlicer.TrySlice();
                     
                     if (!string.IsNullOrWhiteSpace(_targetAssetPath))
                     {

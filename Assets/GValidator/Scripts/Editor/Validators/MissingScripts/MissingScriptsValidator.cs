@@ -35,7 +35,7 @@ namespace GValidator.Validators.MissingScripts
             IValidationContext context,
             IProgressScope progress)
         {
-            List<Object> prefabs = await context.AssetsProvider.GetAssetsAsync("t:Prefab", context.FrameSlicer);
+            List<Object> prefabs = await context.AssetsProvider.GetAssetsAsync("t:Prefab");
 
             for (int index = 0; index < prefabs.Count; index++)
             {
@@ -60,7 +60,7 @@ namespace GValidator.Validators.MissingScripts
             IValidationContext context,
             IProgressScope progress)
         {
-            List<Object> scenes = await context.AssetsProvider.GetAssetsAsync("t:Scene", context.FrameSlicer);
+            List<Object> scenes = await context.AssetsProvider.GetAssetsAsync("t:Scene");
 
             for (int index = 0; index < scenes.Count; index++)
             {
