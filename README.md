@@ -2,7 +2,7 @@
 [![openupm](https://img.shields.io/badge/dynamic/json?color=brightgreen&label=downloads&query=%24.downloads&suffix=%2Fmonth&url=https%3A%2F%2Fpackage.openupm.com%2Fdownloads%2Fpoint%2Flast-month%2Fcom.guillemsc.gvalidator)](https://openupm.com/packages/com.guillemsc.gvalidator/)
 [![Tests](https://github.com/Guillemsc/UnityValidator/actions/workflows/test.yml/badge.svg)](https://github.com/Guillemsc/UnityValidator/actions/workflows/test.yml)
 
-# GValidator
+<img width="1640" height="856" alt="GValidator-Banner" src="https://github.com/user-attachments/assets/7ac37688-2e0d-46c2-861c-11062a5b9d0b" />
 
 GValidator helps Unity teams find broken references, invalid assets, scene problems, and project-specific mistakes before they reach a build.
 
