@@ -1,8 +1,10 @@
 using System.Collections.Generic;
+using GValidator.Configuration;
 using GValidator.Models;
 using GValidator.Providers;
 using GValidator.Validation.Messages;
 using GValidator.Validation.Result;
+using GValidator.Window.Providers;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -19,6 +21,7 @@ namespace GValidator.Window.Sections
         readonly VisualTreeAsset _objectCellAsset;
         readonly CurrentValidationProvider _currentValidationProvider;
         readonly SelectedValidationMessageProvider _selectedValidationMessageProvider;
+        GValidatorProjectSettings? _settings;
         
         readonly List<ValidationMessage> _allMessages = new();
         readonly List<ValidationMessage> _messagesBind = new();
@@ -40,6 +43,7 @@ namespace GValidator.Window.Sections
             _references.InfoToggle.RegisterValueChangedCallback(OnInfoToggleChanged);
             _references.WarningToggle.RegisterValueChangedCallback(OnWarningToggleChanged);
             _references.ErrorToggle.RegisterValueChangedCallback(OnErrorToggleChanged);
+            _references.ShowSuppressedToggle.RegisterValueChangedCallback(OnShowSuppressedChanged);
 
             _currentValidationProvider.OnValidationChanged += OnValidationChanged;
             _currentValidationProvider.OnValidationCleared += Clear;
@@ -85,15 +89,19 @@ namespace GValidator.Window.Sections
         void RefreshMessages()
         {
             var validationResult = _currentValidationProvider.ValidationResult;
-            if(validationResult == null) return;
+            if (validationResult == null) return;
+
+            GValidatorProjectSettings settings = ProjectSettingsProvider.GetOrCreate();
+            _settings = settings;
             
             _allMessages.Clear();
 
-            for (var index = 0; index < validationResult.Messages.Count; index++)
+            foreach (ValidationMessage message in validationResult.Messages)
             {
-                var message = validationResult.Messages[index];
-                
-                if (index > MaxMessages) break;
+                bool isSuppressed = settings.FindSuppression(message) != null;
+                if (isSuppressed && !_references.ShowSuppressedToggle.value) continue;
+
+                if (_allMessages.Count >= MaxMessages) break;
                 
                 _allMessages.Add(message);
             }
@@ -123,6 +131,11 @@ namespace GValidator.Window.Sections
         void OnErrorToggleChanged(ChangeEvent<bool> _)
         {
             ApplyFilters();
+        }
+
+        void OnShowSuppressedChanged(ChangeEvent<bool> _)
+        {
+            RefreshMessages();
         }
 
         void ApplyFilters()
@@ -174,13 +187,19 @@ namespace GValidator.Window.Sections
             var message = _messagesBind[index];
             var texture = MessageTypeIconProvider.Get(message.Type);
 
+            ValidationSuppression? suppression = _settings?.FindSuppression(message);
+
             if (texture != null)
             {
                 references.MessageIcon.style.backgroundImage = Background.FromTexture2D(texture);
             }
 
-            references.MessageLabel.text = message.Message ?? string.Empty;
-            references.Row.tooltip = message.Message ?? string.Empty;
+            references.MessageLabel.text = suppression == null
+                ? message.Message ?? string.Empty
+                : $"[Suppressed] {message.Message}";
+            references.Row.tooltip = suppression == null
+                ? message.Message ?? string.Empty
+                : $"Suppressed: {suppression.Reason}\n{message.Message}";
         }
 
         VisualElement MakeObjectCell()

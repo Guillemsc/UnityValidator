@@ -28,6 +28,7 @@ description: Follow this Unity project's C# style and coding rules when creating
   ```
 
 - **Do not add `try`/`catch` blocks by default.** Let exceptions propagate unless there is a specific reason to handle them, such as recovering from a known expected failure, adding useful context at an API boundary, or translating an exception into a defined result. Catch only the exception types that can be handled meaningfully; avoid blanket catches used only to suppress errors. Use `finally` when cleanup must happen regardless of success or failure.
+- **Do not throw exceptions for routine invalid input or expected failures in general.** Validate inputs and return a status (`bool`, nullable value, or result type) or exit early instead. Only throw for truly exceptional, unrecoverable contract violations when there is a clear reason to do so.
 - **Break complex conditions and conditional expressions into named booleans.** Evaluate each meaningful check separately, combine those booleans into a clearly named final condition, then use the final value in `if`/ternary logic. Avoid embedding multiple method calls or checks inside one condition or ternary.
 
   ```csharp

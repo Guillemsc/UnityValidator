@@ -14,6 +14,8 @@ namespace GValidator.Validation.Builder
         string _currentValidatorName = string.Empty;
         Object? _currentObject;
         string? _currentObjectPath;
+        string? _currentObjectId;
+        bool _objectIdResolved;
         int _infoCount;
         int _warningCount;
         int _errorCount;
@@ -26,7 +28,8 @@ namespace GValidator.Validation.Builder
                 ValidationMessageType.Error,
                 _currentObject,
                 _currentValidatorName,
-                _currentObjectPath));
+                _currentObjectPath,
+                GetCurrentObjectId()));
         }
 
         public void Warning(string message)
@@ -37,7 +40,8 @@ namespace GValidator.Validation.Builder
                 ValidationMessageType.Warning,
                 _currentObject,
                 _currentValidatorName,
-                _currentObjectPath));
+                _currentObjectPath,
+                GetCurrentObjectId()));
         }
 
         public void Info(string message)
@@ -48,7 +52,8 @@ namespace GValidator.Validation.Builder
                 ValidationMessageType.Info,
                 _currentObject,
                 _currentValidatorName,
-                _currentObjectPath));
+                _currentObjectPath,
+                GetCurrentObjectId()));
         }
 
         public IValidationResult Build()
@@ -74,12 +79,28 @@ namespace GValidator.Validation.Builder
 #else
             _currentObjectPath = null;
 #endif
+            _currentObjectId = null;
+            _objectIdResolved = false;
         }
 
         public void ClearObject()
         {
             _currentObject = null;
             _currentObjectPath = null;
+            _currentObjectId = null;
+            _objectIdResolved = false;
+        }
+
+        string? GetCurrentObjectId()
+        {
+#if UNITY_EDITOR
+            if (!_objectIdResolved && _currentObject != null)
+            {
+                _currentObjectId = UnityEditor.GlobalObjectId.GetGlobalObjectIdSlow(_currentObject).ToString();
+                _objectIdResolved = true;
+            }
+#endif
+            return _currentObjectId;
         }
     }
 }

@@ -21,5 +21,12 @@ namespace GValidator.Providers
             ValidationResult = null;
             OnValidationCleared?.Invoke();
         }
+
+        public void Refresh()
+        {
+            if (ValidationResult == null) return;
+
+            OnValidationChanged?.Invoke(ValidationResult);
+        }
     }
 }

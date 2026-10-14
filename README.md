@@ -17,6 +17,7 @@ Run validation from a dedicated Editor window, validate one asset or folder from
 - Validate regular assets, `ScriptableObject`s, prefabs, scenes, `GameObject`s, and components.
 - Select which scenes and validation rules to run.
 - Ignore generated, third-party, or other project folders globally.
+- Suppress individual findings with a project-shared reason, including in CI.
 - Filter results by info, warning, and error severity.
 - Inspect and copy validation messages and object paths.
 - Export results as formatted JUnit XML.
@@ -32,6 +33,7 @@ Run validation from a dedicated Editor window, validate one asset or folder from
 - [Using the validation window](#using-the-validation-window)
 - [Validating an asset or folder](#validating-an-asset-or-folder)
 - [Ignoring folders](#ignoring-folders)
+- [Suppressing individual findings](#suppressing-individual-findings)
 - [Built-in validation rules](#built-in-validation-rules)
 - [Adding validation to your project](#adding-validation-to-your-project)
 - [Exporting results](#exporting-results)
@@ -197,13 +199,21 @@ Ignored folders apply everywhere:
 
 The folder and every descendant are excluded. Matching is case-insensitive and accepts `/` or `\` separators. Matching observes folder boundaries, so ignoring `Assets/Generated` does not ignore `Assets/GeneratedBackup`.
 
-GValidator stores the settings in a `GValidatorConfiguration` asset. If no configuration exists, it creates one at:
+GValidator stores the settings in a `GValidatorProjectSettings` asset. If no configuration exists, it creates one at:
 
 ```text
-Assets/GValidatorConfiguration.asset
+Assets/GValidatorProjectSettings.asset
 ```
 
-Commit this asset if the whole team and CI should use the same ignored folders.
+Commit this asset if the whole team and CI should use the same ignored folders and suppressions.
+
+## Suppressing individual findings
+
+Select a result in the validation window and click **Suppress Finding…** in its details. Enter a reason and click **Suppress**. Suppressions are saved to the project settings asset; commit that asset to share them with the team and CI. Results without a stable object path cannot be suppressed.
+
+The window hides suppressed findings by default. Toggle **Show Suppressed** to inspect them and include them in the window's severity counters; read their reasons and select **Remove Suppression** in the details panel. The project settings Inspector also lists suppressions, so you can remove stale entries there. Suppression changes take effect immediately in the current window without rerunning validation.
+
+A suppression matches the validator name, severity, exact message text, object path, and Unity object ID when available. If any of these change, the new finding is reported normally. Suppressed findings are excluded from XML exports, CI reports, and the CI failure decision, regardless of the window's **Show Suppressed** setting. They do not disable the validator or skip its execution.
 
 ## Built-in validation rules
 
@@ -513,7 +523,7 @@ It performs the following steps:
 2. Logs the ignored folders.
 3. Runs all default validation sources and enabled validators.
 4. Writes `gvalidator-results.xml`.
-5. Exits with code `1` if errors were found, or `0` if validation passed.
+5. Exits with code `1` if unsuppressed errors were found, or `0` if validation passed.
 
 Warnings are included in the report but do not fail CI.
 

@@ -25,21 +25,29 @@ namespace GValidator.Validation.Ci
             LogIgnoredFolders();
 
             IValidationResult validationResult = await _definition.Runner.RunAsync(_definition.Context);
-            Result = validationResult;
+            IValidationResult activeResult = ExcludeSuppressed(validationResult);
+            Result = activeResult;
 
-            string junitXml = ValidationReportWriter.ToJUnit(validationResult);
+            string junitXml = ValidationReportWriter.ToJUnit(activeResult);
             _configuration.Log(junitXml);
 
             await File.WriteAllTextAsync(_configuration.ReportPath, junitXml);
             _configuration.Log($"GValidator report written to: {_configuration.ReportPath}");
 
-            bool hasFailure = validationResult.ErrorCount > 0;
+            bool hasFailure = activeResult.ErrorCount > 0;
             int exitCode = hasFailure ? 1 : 0;
             _configuration.Log(
-                $"GValidator completed with {validationResult.ErrorCount} error(s) and " +
-                $"{validationResult.WarningCount} warning(s).");
+                $"GValidator completed with {activeResult.ErrorCount} error(s) and " +
+                $"{activeResult.WarningCount} warning(s).");
 
             return new ValidationCiRunnerResult(junitXml, exitCode);
+        }
+
+        IValidationResult ExcludeSuppressed(IValidationResult validationResult)
+        {
+            return _configuration.ProjectSettings == null
+                ? validationResult
+                : ValidationResultFilter.ExcludeSuppressed(validationResult, _configuration.ProjectSettings);
         }
 
         void LogIgnoredFolders()

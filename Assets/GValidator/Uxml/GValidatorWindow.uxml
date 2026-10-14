@@ -62,6 +62,8 @@
                                         <ui:Label name="detail-validator-name" text="—" selectable="true" style="white-space: normal; margin-bottom: 8px;"/>
                                         <ui:Label text="Object Path" style="-unity-font-style: bold; margin-bottom: 2px;"/>
                                         <ui:Label name="detail-object-path" text="—" selectable="true" style="white-space: normal;"/>
+                                        <ui:Label name="detail-suppression-reason" text="" selectable="true" style="white-space: normal; margin-top: 8px;"/>
+                                        <ui:Button name="detail-suppression-button" text="Suppress Finding…" style="margin-top: 8px;"/>
                                     </ui:VisualElement>
                                 </ui:ScrollView>
                             </ui:TwoPaneSplitView>
@@ -69,6 +71,7 @@
                     </ui:TwoPaneSplitView>
                 </ui:VisualElement>
                 <uie:Toolbar name="results-bottom-toolbar" style="flex-shrink: 0; margin-right: -1px; margin-bottom: -1px; margin-left: -1px;">
+                    <uie:ToolbarToggle name="show-suppressed-toggle" text="Show Suppressed" tooltip="Show suppressed findings in the results list"/>
                     <uie:ToolbarSpacer style="flex-grow: 1;"/>
                     <uie:ToolbarButton name="export-results-button" text="Export XML" tooltip="Export the validation results as JUnit XML"/>
                 </uie:Toolbar>

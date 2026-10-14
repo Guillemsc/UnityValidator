@@ -11,6 +11,7 @@ namespace GValidator.Models
         public ToolbarButton RunAllButton { get; private set; } = null!;
         public ToolbarButton RunScopedButton { get; private set; } = null!;
         public ToolbarButton ClearResultsButton { get; private set; } = null!;
+        public ToolbarToggle ShowSuppressedToggle { get; private set; } = null!;
         public ToolbarButton GlobalConfigurationButton { get; private set; } = null!;
         public ToolbarButton ClearSearchScopeButton { get; private set; } = null!;
         public Image SearchScopeIcon { get; private set; } = null!;
@@ -39,6 +40,8 @@ namespace GValidator.Models
         public Label DetailMessageLabel { get; private set; } = null!;
         public Label DetailValidatorName { get; private set; } = null!;
         public Label DetailObjectPath { get; private set; } = null!;
+        public Label DetailSuppressionReason { get; private set; } = null!;
+        public Button DetailSuppressionButton { get; private set; } = null!;
         
         public void Gather(VisualElement root)
         {
@@ -47,6 +50,7 @@ namespace GValidator.Models
             RunAllButton = Get<ToolbarButton>(root, "run-all-button");
             RunScopedButton = Get<ToolbarButton>(root, "run-scoped-button");
             ClearResultsButton = Get<ToolbarButton>(root, "clear-results-button");
+            ShowSuppressedToggle = Get<ToolbarToggle>(root, "show-suppressed-toggle");
             GlobalConfigurationButton = Get<ToolbarButton>(root, "global-configuration-button");
             ClearSearchScopeButton = Get<ToolbarButton>(root, "clear-search-scope-button");
             SearchScopeIcon = Get<Image>(root, "search-scope-icon");
@@ -75,6 +79,8 @@ namespace GValidator.Models
             DetailMessageLabel = Get<Label>(root, "detail-message-label");
             DetailValidatorName = Get<Label>(root, "detail-validator-name");
             DetailObjectPath = Get<Label>(root, "detail-object-path");
+            DetailSuppressionReason = Get<Label>(root, "detail-suppression-reason");
+            DetailSuppressionButton = Get<Button>(root, "detail-suppression-button");
         }
 
         static T Get<T>(VisualElement root, string name) where T : VisualElement

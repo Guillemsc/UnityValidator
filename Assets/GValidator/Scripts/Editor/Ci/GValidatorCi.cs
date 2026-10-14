@@ -21,7 +21,8 @@ namespace GValidator.Ci
 
             ValidationCiRunnerConfiguration runnerConfiguration = new(
                 ReportPath,
-                UnityEngine.Debug.Log);
+                UnityEngine.Debug.Log,
+                projectSettings);
 
             ValidationCiRunner runner = new(definition, runnerConfiguration);
 

@@ -20,6 +20,12 @@ namespace GValidator.Editors
             SerializedProperty ignoredFolders = serializedObject.FindProperty("_ignoredFolders");
             root.Add(new PropertyField(ignoredFolders));
 
+            SerializedProperty suppressedFindings = serializedObject.FindProperty("_suppressedFindings");
+            root.Add(new PropertyField(suppressedFindings)
+            {
+                tooltip = "Project-shared findings excluded from validation results and CI. Remove stale entries here."
+            });
+
             Label validatorsLabel = new("Enabled Validators")
             {
                 style =

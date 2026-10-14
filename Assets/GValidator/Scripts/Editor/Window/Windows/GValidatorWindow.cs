@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using GValidator.Configuration;
 using GValidator.Models;
 using GValidator.Providers;
-using GValidator.Sections;
 using GValidator.Validation.AssetSources;
 using GValidator.Validation.Validators;
 using GValidator.Window.Providers;
@@ -23,6 +22,7 @@ namespace GValidator.Window.Windows
 
         readonly GValidatorWindowReferences _references = new();
         ToolbarSection? _toolbarSection;
+        CurrentValidationProvider? _currentValidationProvider;
         UserSelectedValidatorsProvider? _userSelectedValidatorsProvider;
         ValidatorsSection? _validatorsSection;
         string? _pendingScopePath;
@@ -106,6 +106,7 @@ namespace GValidator.Window.Windows
             SelectedAssetsSourcesProvider selectedAssetsSourcesProvider = new(assetSources);
             
             CurrentValidationProvider currentValidationProvider = new();
+            _currentValidationProvider = currentValidationProvider;
             GValidatorProjectSettings projectSettings = ProjectSettingsProvider.GetOrCreate();
             IReadOnlyList<ValidatorEntry> validatorEntries = ValidatorsFactory.CreateAll();
             
@@ -156,7 +157,8 @@ namespace GValidator.Window.Windows
 
             DetailsSection detailsSection = new(
                 _references,
-                selectedValidationMessageProvider);
+                selectedValidationMessageProvider,
+                currentValidationProvider);
 
             TryRunPendingAssetValidation();
         }
@@ -177,6 +179,7 @@ namespace GValidator.Window.Windows
         {
             GValidatorProjectSettings? currentSettings = ProjectSettingsProvider.GetExisting();
             RefreshProjectValidators(currentSettings);
+            _currentValidationProvider?.Refresh();
         }
 
         void OnProjectValidatorsChanged(GValidatorProjectSettings projectSettings)

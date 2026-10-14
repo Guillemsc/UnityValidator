@@ -17,6 +17,7 @@ using GValidator.Validation.Runner;
 using GValidator.Window.Providers;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace GValidator.Window.Sections
 {
@@ -43,6 +44,7 @@ namespace GValidator.Window.Sections
 
             _currentValidationProvider.OnValidationChanged += OnValidationChanged;
             _currentValidationProvider.OnValidationCleared += OnValidationCleared;
+            _references.ShowSuppressedToggle.RegisterValueChangedCallback(OnShowSuppressedChanged);
             
             _references.RunAllButton.clicked += OnRunAllClicked;
             _references.RunScopedButton.clicked += OnRunScopedClicked;
@@ -156,6 +158,9 @@ namespace GValidator.Window.Sections
             IValidationResult? validationResult = _currentValidationProvider.ValidationResult;
             if (validationResult == null) return;
 
+            GValidatorProjectSettings settings = ProjectSettingsProvider.GetOrCreate();
+            IValidationResult activeResult = ValidationResultFilter.ExcludeSuppressed(validationResult, settings);
+
             string path = EditorUtility.SaveFilePanel(
                 "Export Validation Results",
                 string.Empty,
@@ -163,7 +168,7 @@ namespace GValidator.Window.Sections
                 "xml");
             if (string.IsNullOrEmpty(path)) return;
 
-            string junitXml = ValidationReportWriter.ToJUnit(validationResult);
+            string junitXml = ValidationReportWriter.ToJUnit(activeResult);
             File.WriteAllText(path, junitXml);
         }
 
@@ -176,10 +181,22 @@ namespace GValidator.Window.Sections
 
         void OnValidationChanged(IValidationResult validationResult)
         {
-            _references.InfoToggle.text = validationResult.InfoCount.ToString();
-            _references.WarningToggle.text = validationResult.WarningCount.ToString();
-            _references.ErrorToggle.text = validationResult.ErrorCount.ToString();
+            IValidationResult displayedResult = validationResult;
+            if (!_references.ShowSuppressedToggle.value)
+            {
+                GValidatorProjectSettings settings = ProjectSettingsProvider.GetOrCreate();
+                displayedResult = ValidationResultFilter.ExcludeSuppressed(validationResult, settings);
+            }
+
+            _references.InfoToggle.text = displayedResult.InfoCount.ToString();
+            _references.WarningToggle.text = displayedResult.WarningCount.ToString();
+            _references.ErrorToggle.text = displayedResult.ErrorCount.ToString();
             SetExportResultsButtonEnabled(true);
+        }
+
+        void OnShowSuppressedChanged(ChangeEvent<bool> _)
+        {
+            _currentValidationProvider.Refresh();
         }
         
         void OnValidationCleared()
