@@ -21,6 +21,17 @@ namespace GValidator.Window.Sections
                 userSelectedValidatorsProvider,
                 true);
             _validatorsListEditor.Setup();
+
+            references.SelectAllValidatorsButton.clicked += () =>
+            {
+                userSelectedValidatorsProvider.SetAllSelected(true);
+                Refresh();
+            };
+            references.DeselectAllValidatorsButton.clicked += () =>
+            {
+                userSelectedValidatorsProvider.SetAllSelected(false);
+                Refresh();
+            };
         }
 
         public void Refresh()

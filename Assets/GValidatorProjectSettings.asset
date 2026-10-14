@@ -13,4 +13,5 @@ MonoBehaviour:
   m_Name: GValidatorProjectSettings
   m_EditorClassIdentifier: GValidator.Runtime::GValidator.Configuration.GValidatorProjectSettings
   _ignoredFolders: []
-  _disabledValidators: []
+  _disabledValidators:
+  - GValidator.Validators.Assets.AssetsValidator

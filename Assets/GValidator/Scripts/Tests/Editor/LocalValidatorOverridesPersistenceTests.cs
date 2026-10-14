@@ -67,6 +67,29 @@ namespace GValidator.Tests
         }
 
         [Test]
+        public void ClearOverride_RemovesOnlyRequestedValidator()
+        {
+            _overridesPersistence.Save(new[] { "First", "Second" }, new[] { "Second", "Third" });
+
+            _overridesPersistence.ClearOverride("First");
+
+            Assert.That(_overridesPersistence.GetOverriddenValidatorIds(),
+                Is.EquivalentTo(new[] { "Third" }));
+            Assert.That(_overridesPersistence.GetEnabledValidators(new[] { "First", "Second" }),
+                Is.EquivalentTo(new[] { "First", "Second", "Third" }));
+        }
+
+        [Test]
+        public void ClearOverride_LastOverrideRemovesStoredEntry()
+        {
+            _overridesPersistence.Save(new[] { "First" }, System.Array.Empty<string>());
+
+            _overridesPersistence.ClearOverride("First");
+
+            Assert.That(_overridesPersistence.HasOverrides, Is.False);
+        }
+
+        [Test]
         public void Save_MatchingProjectDefaultsClearsOverrides()
         {
             _overridesPersistence.Save(new[] { "First" }, new[] { "First", "Second" });

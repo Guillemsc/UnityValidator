@@ -77,6 +77,25 @@ namespace GValidator.Window.Providers
             EditorPrefs.SetString(_key, JsonUtility.ToJson(overrides));
         }
 
+        public void ClearOverride(string validatorId)
+        {
+            if (!HasOverrides) return;
+
+            string overridesJson = EditorPrefs.GetString(_key);
+            ValidatorOverrides overrides = JsonUtility.FromJson<ValidatorOverrides>(overridesJson);
+            overrides.EnabledOverrides.Remove(validatorId);
+            overrides.DisabledOverrides.Remove(validatorId);
+
+            bool hasNoOverrides = overrides.EnabledOverrides.Count == 0 && overrides.DisabledOverrides.Count == 0;
+            if (hasNoOverrides)
+            {
+                Clear();
+                return;
+            }
+
+            EditorPrefs.SetString(_key, JsonUtility.ToJson(overrides));
+        }
+
         public void Clear()
         {
             EditorPrefs.DeleteKey(_key);

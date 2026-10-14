@@ -53,6 +53,7 @@ namespace GValidator.Editors
             }
 
             GValidatorProjectSettings projectSettings = (GValidatorProjectSettings)target;
+
             UserSelectedValidatorsProvider userSelectedValidatorsProvider = new(
                 ValidatorsFactory.CreateAll(),
                 projectSettings.DisabledValidators,

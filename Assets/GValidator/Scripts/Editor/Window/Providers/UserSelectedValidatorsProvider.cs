@@ -13,6 +13,7 @@ namespace GValidator.Window.Providers
         readonly Action<IReadOnlyList<string>>? _selectionChanged;
         readonly ILocalValidatorOverridesPersistence? _localOverridesPersistence;
         readonly HashSet<string> _overriddenValidatorIds = new();
+        readonly HashSet<string> _projectDisabledValidatorIds = new();
 
         IReadOnlyList<string> _projectEnabledValidatorIds = Array.Empty<string>();
 
@@ -41,6 +42,8 @@ namespace GValidator.Window.Providers
         {
             if (_localOverridesPersistence == null) return;
 
+            _projectDisabledValidatorIds.Clear();
+            _projectDisabledValidatorIds.UnionWith(projectDisabledValidatorIds);
             ApplySelection(projectDisabledValidatorIds);
             _projectEnabledValidatorIds = GetSelectedValidatorIds();
 
@@ -55,6 +58,8 @@ namespace GValidator.Window.Providers
             if (_localOverridesPersistence == null) return;
 
             _localOverridesPersistence.Clear();
+            _projectDisabledValidatorIds.Clear();
+            _projectDisabledValidatorIds.UnionWith(projectDisabledValidatorIds);
             ApplySelection(projectDisabledValidatorIds);
             _projectEnabledValidatorIds = GetSelectedValidatorIds();
             _overriddenValidatorIds.Clear();
@@ -128,6 +133,24 @@ namespace GValidator.Window.Providers
             return _overriddenValidatorIds.Contains(source.Id);
         }
 
+        public void ClearOverride(ValidatorEntry source)
+        {
+            if (_localOverridesPersistence == null || !_overriddenValidatorIds.Contains(source.Id)) return;
+
+            _localOverridesPersistence.ClearOverride(source.Id);
+
+            if (_projectDisabledValidatorIds.Contains(source.Id))
+            {
+                _disabledValidators.Add(source);
+            }
+            else
+            {
+                _disabledValidators.Remove(source);
+            }
+
+            RefreshOverriddenValidatorIds();
+        }
+
         public void SetSelected(ValidatorEntry source, bool isSelected)
         {
             if (isSelected)
@@ -139,6 +162,32 @@ namespace GValidator.Window.Providers
                 _disabledValidators.Add(source);
             }
 
+            SaveSelection();
+        }
+
+        public void SetAllSelected(bool isSelected)
+        {
+            _disabledValidators.Clear();
+
+            if (!isSelected)
+            {
+                List<ValidatorEntry> pending = new(All);
+                while (pending.Count > 0)
+                {
+                    int index = pending.Count - 1;
+                    ValidatorEntry entry = pending[index];
+                    pending.RemoveAt(index);
+
+                    _disabledValidators.Add(entry);
+                    pending.AddRange(entry.Children);
+                }
+            }
+
+            SaveSelection();
+        }
+
+        void SaveSelection()
+        {
             IReadOnlyList<string> selectedValidatorIds = GetSelectedValidatorIds();
             if (_localOverridesPersistence != null)
             {

@@ -284,6 +284,77 @@ namespace GValidator.Tests
         }
 
         [Test]
+        public void ClearOverride_RestoresProjectSelectionWithoutChangingOtherOverrides()
+        {
+            IValidator firstValidator = Substitute.For<IValidator>();
+            TestParentValidator secondValidator = new();
+            ValidatorEntry first = new(firstValidator, "First");
+            ValidatorEntry second = new(secondValidator, "Second");
+            ILocalValidatorOverridesPersistence persistence =
+                Substitute.For<ILocalValidatorOverridesPersistence>();
+            persistence.GetEnabledValidators(Arg.Any<IReadOnlyList<string>>())
+                .Returns(new[] { second.Id });
+            persistence.GetOverriddenValidatorIds()
+                .Returns(new[] { first.Id, second.Id }, new[] { second.Id });
+
+            UserSelectedValidatorsProvider provider = new(
+                new[] { first, second },
+                persistence,
+                new[] { second.Id });
+
+            provider.ClearOverride(first);
+
+            persistence.Received(1).ClearOverride(first.Id);
+            persistence.DidNotReceiveWithAnyArgs().Save(default!, default!);
+            Assert.That(provider.IsSelected(first), Is.True);
+            Assert.That(provider.IsSelected(second), Is.True);
+            Assert.That(provider.IsOverridden(first), Is.False);
+            Assert.That(provider.IsOverridden(second), Is.True);
+
+            provider.ClearOverride(second);
+
+            persistence.Received(1).ClearOverride(second.Id);
+            Assert.That(provider.IsSelected(second), Is.False);
+            Assert.That(provider.IsOverridden(second), Is.False);
+        }
+
+        [Test]
+        public void SetAllSelected_UpdatesChildrenAndSavesLocalOverridesOncePerAction()
+        {
+            IAssetValidator childValidator = Substitute.For<IAssetValidator>();
+            TestParentValidator parentValidator = new();
+            ValidatorEntry child = new(childValidator, "Child");
+            parentValidator.SetChildren(new[] { child });
+            ValidatorEntry parent = new(parentValidator, "Parent");
+            ILocalValidatorOverridesPersistence persistence =
+                Substitute.For<ILocalValidatorOverridesPersistence>();
+            persistence.GetEnabledValidators(Arg.Any<IReadOnlyList<string>>())
+                .Returns(call => call.Arg<IReadOnlyList<string>>().ToArray());
+
+            UserSelectedValidatorsProvider provider = new(
+                new[] { parent },
+                persistence,
+                new[] { child.Id });
+
+            provider.SetAllSelected(false);
+
+            Assert.That(provider.IsSelected(parent), Is.False);
+            Assert.That(provider.IsSelected(child), Is.False);
+            persistence.Received(1).Save(
+                Arg.Is<IReadOnlyList<string>>(ids => ids.Count == 1 && ids[0] == parent.Id),
+                Arg.Is<IReadOnlyList<string>>(ids => ids.Count == 0));
+
+            provider.SetAllSelected(true);
+
+            Assert.That(provider.IsSelected(parent), Is.True);
+            Assert.That(provider.IsSelected(child), Is.True);
+            persistence.Received(1).Save(
+                Arg.Is<IReadOnlyList<string>>(ids => ids.Count == 1 && ids[0] == parent.Id),
+                Arg.Is<IReadOnlyList<string>>(ids => ids.Count == 2 && ids.Contains(parent.Id) && ids.Contains(child.Id)));
+            persistence.Received(3).GetOverriddenValidatorIds();
+        }
+
+        [Test]
         public void ValidatorWithChildren_TracksDiscoveredAndEnabledChildren()
         {
             IAssetValidator firstValidator = Substitute.For<IAssetValidator>();

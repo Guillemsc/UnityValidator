@@ -78,6 +78,7 @@ namespace GValidator.SharedEditors
             bool selected = _userSelectedValidatorsProvider.IsSelected(validator);
             entry.Toggle.SetEnabled(ancestorsSelected);
             Label? overrideLabel = null;
+            Button? clearOverrideButton = null;
             if (_showOverrides)
             {
                 overrideLabel = new Label("Overridden")
@@ -94,6 +95,30 @@ namespace GValidator.SharedEditors
                     }
                 };
                 entry.Row.Add(overrideLabel);
+
+                clearOverrideButton = new Button(() =>
+                {
+                    _userSelectedValidatorsProvider.ClearOverride(validator);
+                    bool projectSelected = _userSelectedValidatorsProvider.IsSelected(validator);
+                    entry.Toggle.SetValueWithoutNotify(projectSelected);
+                    bool descendantsEnabled = ancestorsSelected && projectSelected;
+                    SetDescendantsEnabled(validator, descendantsEnabled);
+
+                    overrideLabel.style.display = DisplayStyle.None;
+                    clearOverrideButton!.style.display = DisplayStyle.None;
+                })
+                {
+                    text = "Clear",
+                    tooltip = "Clear this validator's local override and use the project setting.",
+                    style =
+                    {
+                        marginRight = 5,
+                        display = _userSelectedValidatorsProvider.IsOverridden(validator)
+                            ? DisplayStyle.Flex
+                            : DisplayStyle.None
+                    }
+                };
+                entry.Row.Add(clearOverrideButton);
             }
 
             container.Add(template);
@@ -111,9 +136,11 @@ namespace GValidator.SharedEditors
                 _userSelectedValidatorsProvider.SetSelected(validator, evt.newValue);
                 if (overrideLabel != null)
                 {
-                    overrideLabel.style.display = _userSelectedValidatorsProvider.IsOverridden(validator)
+                    DisplayStyle overrideDisplay = _userSelectedValidatorsProvider.IsOverridden(validator)
                         ? DisplayStyle.Flex
                         : DisplayStyle.None;
+                    overrideLabel.style.display = overrideDisplay;
+                    clearOverrideButton!.style.display = overrideDisplay;
                 }
 
                 bool descendantsEnabled = ancestorsSelected && evt.newValue;
