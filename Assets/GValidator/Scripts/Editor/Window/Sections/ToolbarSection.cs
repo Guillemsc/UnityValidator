@@ -92,13 +92,13 @@ namespace GValidator.Window.Sections
             SetSearchScopeDisplay(scope);
 
             FrameSlicer frameSlicer = new();
-            GValidatorConfiguration configuration = GlobalConfigurationProvider.GetOrCreate();
+            GValidatorProjectSettings projectSettings = ProjectSettingsProvider.GetOrCreate();
             
             AssetsProvider assetsProvider = new(
                 _assetsSourcesProvider.GetSelected(),
                 frameSlicer,
                 scope,
-                configuration.IgnoredFolders);
+                projectSettings.IgnoredFolders);
 
             ValidationContext validationContext = new(
                 validators,
@@ -169,7 +169,7 @@ namespace GValidator.Window.Sections
 
         void OnGlobalConfigurationClicked()
         {
-            UnityEngine.Object configuration = GlobalConfigurationProvider.GetOrCreate();
+            UnityEngine.Object configuration = ProjectSettingsProvider.GetOrCreate();
             Selection.activeObject = configuration;
             EditorGUIUtility.PingObject(configuration);
         }

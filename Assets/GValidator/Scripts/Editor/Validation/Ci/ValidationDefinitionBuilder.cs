@@ -23,14 +23,13 @@ namespace GValidator.Validation.Ci
             IProgressSink progressSink,
             IReadOnlyList<string> ignoredFolders)
         {
-            return Build(progressSink, ignoredFolders, System.Array.Empty<string>(), false);
+            return Build(progressSink, ignoredFolders, System.Array.Empty<string>());
         }
 
         public static ValidationDefinition Build(
             IProgressSink progressSink,
             IReadOnlyList<string> ignoredFolders,
-            IReadOnlyList<string> enabledValidatorIds,
-            bool validatorsConfigured)
+            IReadOnlyList<string> disabledValidatorIds)
         {
             FrameSlicer frameSlicer = new(int.MaxValue);
             
@@ -45,8 +44,7 @@ namespace GValidator.Validation.Ci
                 ignoredFolders);
             UserSelectedValidatorsProvider validatorsProvider = new(
                 ValidatorsFactory.CreateAll(),
-                enabledValidatorIds,
-                validatorsConfigured);
+                disabledValidatorIds);
             IReadOnlyList<IValidator> validators = validatorsProvider.GetRunnableValidators();
 
             ValidationContext context = new(validators, assetsProvider, frameSlicer);

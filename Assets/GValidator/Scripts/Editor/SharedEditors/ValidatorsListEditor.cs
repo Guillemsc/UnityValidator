@@ -1,32 +1,34 @@
 using System.Collections.Generic;
 using GValidator.Models;
-using GValidator.Providers;
 using GValidator.Validation.Validators;
 using GValidator.Window.Providers;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace GValidator.Window.Sections
+namespace GValidator.SharedEditors
 {
-    public sealed class ValidatorsList
+    public sealed class ValidatorsListEditor
     {
         readonly VisualElement _container;
         readonly Label _emptyLabel;
         readonly VisualTreeAsset _validatorEntryAsset;
         readonly UserSelectedValidatorsProvider _userSelectedValidatorsProvider;
+        readonly bool _showOverrides;
         readonly Dictionary<ValidatorEntry, Toggle> _toggles = new();
 
-        public ValidatorsList(
+        public ValidatorsListEditor(
             VisualElement container,
             Label emptyLabel,
             VisualTreeAsset validatorEntryAsset,
-            UserSelectedValidatorsProvider userSelectedValidatorsProvider)
+            UserSelectedValidatorsProvider userSelectedValidatorsProvider,
+            bool showOverrides = false)
         {
             _container = container;
             _emptyLabel = emptyLabel;
             _validatorEntryAsset = validatorEntryAsset;
             _userSelectedValidatorsProvider = userSelectedValidatorsProvider;
+            _showOverrides = showOverrides;
         }
 
         public void Setup()
@@ -75,6 +77,25 @@ namespace GValidator.Window.Sections
 
             bool selected = _userSelectedValidatorsProvider.IsSelected(validator);
             entry.Toggle.SetEnabled(ancestorsSelected);
+            Label? overrideLabel = null;
+            if (_showOverrides)
+            {
+                overrideLabel = new Label("Overridden")
+                {
+                    tooltip = "This validator uses a local setting instead of the project setting.",
+                    style =
+                    {
+                        marginRight = 5,
+                        unityFontStyleAndWeight = FontStyle.Italic,
+                        opacity = 0.65f,
+                        display = _userSelectedValidatorsProvider.IsOverridden(validator)
+                            ? DisplayStyle.Flex
+                            : DisplayStyle.None
+                    }
+                };
+                entry.Row.Add(overrideLabel);
+            }
+
             container.Add(template);
             rowIndex++;
 
@@ -88,6 +109,13 @@ namespace GValidator.Window.Sections
             entry.Toggle.RegisterValueChangedCallback(evt =>
             {
                 _userSelectedValidatorsProvider.SetSelected(validator, evt.newValue);
+                if (overrideLabel != null)
+                {
+                    overrideLabel.style.display = _userSelectedValidatorsProvider.IsOverridden(validator)
+                        ? DisplayStyle.Flex
+                        : DisplayStyle.None;
+                }
+
                 bool descendantsEnabled = ancestorsSelected && evt.newValue;
                 SetDescendantsEnabled(validator, descendantsEnabled);
             });

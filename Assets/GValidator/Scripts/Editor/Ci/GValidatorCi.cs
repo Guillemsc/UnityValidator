@@ -12,13 +12,12 @@ namespace GValidator.Ci
 
         public static async void Run()
         {
-            GValidatorConfiguration configuration = GlobalConfigurationProvider.GetOrCreate();
+            GValidatorProjectSettings projectSettings = ProjectSettingsProvider.GetOrCreate();
 
             ValidationDefinition definition = ValidationDefinitionBuilder.Build(
                 NoOpProgressSink.Instance,
-                configuration.IgnoredFolders,
-                configuration.EnabledValidators,
-                configuration.ValidatorsConfigured);
+                projectSettings.IgnoredFolders,
+                projectSettings.DisabledValidators);
 
             ValidationCiRunnerConfiguration runnerConfiguration = new(
                 ReportPath,

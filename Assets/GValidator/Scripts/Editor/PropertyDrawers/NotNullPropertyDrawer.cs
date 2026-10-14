@@ -2,7 +2,7 @@ using GValidator.NotNulls.Attributes;
 using UnityEditor;
 using UnityEngine;
 
-namespace GValidator.Inspectors
+namespace GValidator.PropertyDrawers
 {
     [CustomPropertyDrawer(typeof(NotNullAttribute))]
     public sealed class NotNullPropertyDrawer : PropertyDrawer

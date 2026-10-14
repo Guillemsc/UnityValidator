@@ -23,6 +23,8 @@ namespace GValidator.Window.Windows
 
         readonly GValidatorWindowReferences _references = new();
         ToolbarSection? _toolbarSection;
+        UserSelectedValidatorsProvider? _userSelectedValidatorsProvider;
+        ValidatorsSection? _validatorsSection;
         string? _pendingScopePath;
 
         [MenuItem("Window/GValidator/Validation Window")]
@@ -65,6 +67,10 @@ namespace GValidator.Window.Windows
 
         void CreateGUI()
         {
+            GValidatorProjectSettings.DisabledValidatorsChanged -= OnProjectValidatorsChanged;
+            Undo.undoRedoPerformed -= OnProjectValidatorsUndoRedo;
+            EditorApplication.projectChanged -= OnProjectAssetsChanged;
+
             rootVisualElement.Clear();
 
             if (_visualTreeAsset == null)
@@ -100,7 +106,7 @@ namespace GValidator.Window.Windows
             SelectedAssetsSourcesProvider selectedAssetsSourcesProvider = new(assetSources);
             
             CurrentValidationProvider currentValidationProvider = new();
-            GValidatorConfiguration configuration = GlobalConfigurationProvider.GetOrCreate();
+            GValidatorProjectSettings projectSettings = ProjectSettingsProvider.GetOrCreate();
             IReadOnlyList<ValidatorEntry> validatorEntries = ValidatorsFactory.CreateAll();
             
             ILocalValidatorOverridesPersistence localOverridesPersistence =
@@ -109,8 +115,8 @@ namespace GValidator.Window.Windows
             UserSelectedValidatorsProvider userSelectedValidatorsProvider = new(
                 validatorEntries,
                 localOverridesPersistence,
-                configuration.EnabledValidators,
-                configuration.ValidatorsConfigured);
+                projectSettings.DisabledValidators);
+            _userSelectedValidatorsProvider = userSelectedValidatorsProvider;
             SelectedValidationMessageProvider selectedValidationMessageProvider = new();
 
             SourcesSection sourcesSection = new(
@@ -121,12 +127,17 @@ namespace GValidator.Window.Windows
                 _references,
                 _validatorEntryAsset,
                 userSelectedValidatorsProvider);
+            _validatorsSection = validatorsSection;
+
+            GValidatorProjectSettings.DisabledValidatorsChanged += OnProjectValidatorsChanged;
+            Undo.undoRedoPerformed += OnProjectValidatorsUndoRedo;
+            EditorApplication.projectChanged += OnProjectAssetsChanged;
 
             _references.UseProjectValidatorsButton.clicked += () =>
             {
+                GValidatorProjectSettings currentSettings = ProjectSettingsProvider.GetOrCreate();
                 userSelectedValidatorsProvider.ResetToProjectSettings(
-                    configuration.EnabledValidators,
-                    configuration.ValidatorsConfigured);
+                    currentSettings.DisabledValidators);
                 validatorsSection.Refresh();
             };
             
@@ -148,6 +159,40 @@ namespace GValidator.Window.Windows
                 selectedValidationMessageProvider);
 
             TryRunPendingAssetValidation();
+        }
+
+        void OnDisable()
+        {
+            GValidatorProjectSettings.DisabledValidatorsChanged -= OnProjectValidatorsChanged;
+            Undo.undoRedoPerformed -= OnProjectValidatorsUndoRedo;
+            EditorApplication.projectChanged -= OnProjectAssetsChanged;
+        }
+
+        void OnProjectValidatorsUndoRedo()
+        {
+            OnProjectAssetsChanged();
+        }
+
+        void OnProjectAssetsChanged()
+        {
+            GValidatorProjectSettings? currentSettings = ProjectSettingsProvider.GetExisting();
+            RefreshProjectValidators(currentSettings);
+        }
+
+        void OnProjectValidatorsChanged(GValidatorProjectSettings projectSettings)
+        {
+            OnProjectAssetsChanged();
+        }
+
+        void RefreshProjectValidators(GValidatorProjectSettings? projectSettings)
+        {
+            if (_userSelectedValidatorsProvider == null || _validatorsSection == null) return;
+
+            IReadOnlyList<string> disabledValidators = projectSettings?.DisabledValidators
+                ?? System.Array.Empty<string>();
+            _userSelectedValidatorsProvider.RefreshProjectSettings(disabledValidators);
+
+            _validatorsSection.Refresh();
         }
 
         async void TryRunPendingAssetValidation()

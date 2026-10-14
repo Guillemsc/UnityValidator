@@ -99,6 +99,37 @@ namespace GValidator.Tests
         }
 
         [Test]
+        public void ProjectDisabledValidators_NewValidatorsDefaultToEnabled()
+        {
+            IValidator firstValidator = Substitute.For<IValidator>();
+            TestParentValidator secondValidator = new();
+            ValidatorEntry first = new(firstValidator, "First");
+            ValidatorEntry second = new(secondValidator, "Second");
+            UserSelectedValidatorsProvider provider = new(new[] { first, second }, new[] { first.Id });
+
+            Assert.That(provider.IsSelected(first), Is.False);
+            Assert.That(provider.IsSelected(second), Is.True);
+
+            provider.SetSelected(second, false);
+            Assert.That(provider.GetDisabledValidatorIds(), Is.EquivalentTo(new[] { first.Id, second.Id }));
+        }
+
+        [Test]
+        public void ProjectDisabledValidators_AllKnownDisabledDoesNotDisableNewValidators()
+        {
+            IValidator firstValidator = Substitute.For<IValidator>();
+            TestParentValidator newValidator = new();
+            ValidatorEntry first = new(firstValidator, "First");
+            ValidatorEntry newlyDiscovered = new(newValidator, "New");
+            UserSelectedValidatorsProvider provider = new(
+                new[] { first, newlyDiscovered },
+                new[] { first.Id });
+
+            Assert.That(provider.IsSelected(first), Is.False);
+            Assert.That(provider.IsSelected(newlyDiscovered), Is.True);
+        }
+
+        [Test]
         public void LocalOverrides_LoadAndSaveBothSelectionDirections()
         {
             IValidator firstValidator = Substitute.For<IValidator>();
@@ -109,17 +140,19 @@ namespace GValidator.Tests
                 Substitute.For<ILocalValidatorOverridesPersistence>();
             persistence.GetEnabledValidators(Arg.Any<IReadOnlyList<string>>())
                 .Returns(new[] { second.Id });
+            persistence.GetOverriddenValidatorIds().Returns(new[] { first.Id, second.Id });
 
             UserSelectedValidatorsProvider provider = new(
                 new[] { first, second },
                 persistence,
-                new[] { first.Id },
-                true);
+                new[] { second.Id });
 
             persistence.Received(1).GetEnabledValidators(
                 Arg.Is<IReadOnlyList<string>>(ids => ids.Count == 1 && ids[0] == first.Id));
             Assert.That(provider.IsSelected(first), Is.False);
             Assert.That(provider.IsSelected(second), Is.True);
+            Assert.That(provider.IsOverridden(first), Is.True);
+            Assert.That(provider.IsOverridden(second), Is.True);
 
             provider.SetSelected(first, true);
             persistence.Received(1).Save(
@@ -143,24 +176,111 @@ namespace GValidator.Tests
                 Substitute.For<ILocalValidatorOverridesPersistence>();
             persistence.GetEnabledValidators(Arg.Any<IReadOnlyList<string>>())
                 .Returns(new[] { second.Id });
+            persistence.GetOverriddenValidatorIds().Returns(new[] { first.Id, second.Id });
 
             UserSelectedValidatorsProvider provider = new(
                 new[] { first, second },
                 persistence,
-                new[] { first.Id },
-                true);
+                new[] { second.Id });
 
-            provider.ResetToProjectSettings(new[] { first.Id, second.Id }, true);
+            provider.ResetToProjectSettings(System.Array.Empty<string>());
 
             persistence.Received(1).Clear();
             persistence.DidNotReceiveWithAnyArgs().Save(default!, default!);
             Assert.That(provider.IsSelected(first), Is.True);
             Assert.That(provider.IsSelected(second), Is.True);
+            Assert.That(provider.IsOverridden(first), Is.False);
 
             provider.SetSelected(first, false);
             persistence.Received(1).Save(
                 Arg.Is<IReadOnlyList<string>>(ids => ids.Count == 2 && ids.Contains(first.Id) && ids.Contains(second.Id)),
                 Arg.Is<IReadOnlyList<string>>(ids => ids.Count == 1 && ids[0] == second.Id));
+        }
+
+        [Test]
+        public void RefreshProjectSettings_UpdatesInheritedValidatorsAndPreservesLocalOverrides()
+        {
+            IValidator firstValidator = Substitute.For<IValidator>();
+            TestParentValidator secondValidator = new();
+            IAssetValidator thirdValidator = Substitute.For<IAssetValidator>();
+            ValidatorEntry first = new(firstValidator, "First");
+            ValidatorEntry second = new(secondValidator, "Second");
+            ValidatorEntry third = new(thirdValidator, "Third");
+            ILocalValidatorOverridesPersistence persistence =
+                Substitute.For<ILocalValidatorOverridesPersistence>();
+            persistence.GetEnabledValidators(Arg.Any<IReadOnlyList<string>>())
+                .Returns(call =>
+                {
+                    IReadOnlyList<string> projectIds = call.Arg<IReadOnlyList<string>>();
+                    List<string> enabled = new(projectIds);
+                    enabled.Remove(first.Id);
+                    enabled.Add(second.Id);
+                    return enabled;
+                });
+            persistence.GetOverriddenValidatorIds().Returns(new[] { first.Id, second.Id });
+
+            UserSelectedValidatorsProvider provider = new(
+                new[] { first, second, third },
+                persistence,
+                new[] { second.Id, third.Id });
+
+            provider.RefreshProjectSettings(new[] { second.Id });
+
+            Assert.That(provider.IsSelected(first), Is.False);
+            Assert.That(provider.IsSelected(second), Is.True);
+            Assert.That(provider.IsSelected(third), Is.True);
+            Assert.That(provider.IsOverridden(first), Is.True);
+            Assert.That(provider.IsOverridden(second), Is.True);
+            Assert.That(provider.IsOverridden(third), Is.False);
+            persistence.DidNotReceiveWithAnyArgs().Save(default!, default!);
+
+            provider.SetSelected(third, false);
+            persistence.Received(1).Save(
+                Arg.Is<IReadOnlyList<string>>(ids => ids.Count == 2 && ids.Contains(first.Id) && ids.Contains(third.Id)),
+                Arg.Is<IReadOnlyList<string>>(ids => ids.Count == 1 && ids[0] == second.Id));
+        }
+
+        [Test]
+        public void RecreatedProjectSettings_UsesNewDefaultsAndResetClearsLocalOverrides()
+        {
+            IValidator firstValidator = Substitute.For<IValidator>();
+            TestParentValidator secondValidator = new();
+            ValidatorEntry first = new(firstValidator, "First");
+            ValidatorEntry second = new(secondValidator, "Second");
+            ILocalValidatorOverridesPersistence persistence =
+                Substitute.For<ILocalValidatorOverridesPersistence>();
+            persistence.GetEnabledValidators(Arg.Any<IReadOnlyList<string>>())
+                .Returns(call =>
+                {
+                    IReadOnlyList<string> projectIds = call.Arg<IReadOnlyList<string>>();
+                    return projectIds.Where(id => id != first.Id).ToArray();
+                });
+            persistence.GetOverriddenValidatorIds().Returns(new[] { first.Id });
+
+            UserSelectedValidatorsProvider provider = new(
+                new[] { first, second },
+                persistence,
+                new[] { second.Id });
+
+            provider.RefreshProjectSettings(System.Array.Empty<string>());
+
+            Assert.That(provider.IsSelected(first), Is.False);
+            Assert.That(provider.IsSelected(second), Is.True);
+            Assert.That(provider.IsOverridden(first), Is.True);
+            persistence.Received(1).GetEnabledValidators(
+                Arg.Is<IReadOnlyList<string>>(ids => ids.Count == 2 && ids.Contains(first.Id) && ids.Contains(second.Id)));
+
+            provider.ResetToProjectSettings(System.Array.Empty<string>());
+
+            persistence.Received(1).Clear();
+            Assert.That(provider.IsSelected(first), Is.True);
+            Assert.That(provider.IsSelected(second), Is.True);
+            Assert.That(provider.IsOverridden(first), Is.False);
+
+            provider.SetSelected(second, false);
+            persistence.Received(1).Save(
+                Arg.Is<IReadOnlyList<string>>(ids => ids.Count == 2 && ids.Contains(first.Id) && ids.Contains(second.Id)),
+                Arg.Is<IReadOnlyList<string>>(ids => ids.Count == 1 && ids[0] == first.Id));
         }
 
         [Test]

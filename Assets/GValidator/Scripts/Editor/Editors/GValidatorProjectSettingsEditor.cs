@@ -1,17 +1,16 @@
 using GValidator.Configuration;
-using GValidator.Providers;
+using GValidator.SharedEditors;
 using GValidator.Validation.Validators;
 using GValidator.Window.Providers;
-using GValidator.Window.Sections;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace GValidator.Inspectors
+namespace GValidator.Editors
 {
-    [CustomEditor(typeof(GValidatorConfiguration))]
-    public sealed class GValidatorConfigurationEditor : Editor
+    [CustomEditor(typeof(GValidatorProjectSettings))]
+    public sealed class GValidatorProjectSettingsEditor : Editor
     {
         [SerializeField] VisualTreeAsset? _validatorEntryAsset;
 
@@ -53,22 +52,23 @@ namespace GValidator.Inspectors
                 return root;
             }
 
-            GValidatorConfiguration configuration = (GValidatorConfiguration)target;
+            GValidatorProjectSettings projectSettings = (GValidatorProjectSettings)target;
             UserSelectedValidatorsProvider userSelectedValidatorsProvider = new(
                 ValidatorsFactory.CreateAll(),
-                configuration.EnabledValidators,
-                configuration.ValidatorsConfigured,
-                enabledValidators =>
+                projectSettings.DisabledValidators,
+                disabledValidators =>
                 {
-                    configuration.SetEnabledValidators(enabledValidators);
-                    EditorUtility.SetDirty(configuration);
+                    Undo.RecordObject(projectSettings, "Change Project Validators");
+                    projectSettings.SetDisabledValidators(disabledValidators);
+                    EditorUtility.SetDirty(projectSettings);
                 });
 
-            ValidatorsList validators = new(
+            ValidatorsListEditor validators = new(
                 validatorList,
                 emptyLabel,
                 _validatorEntryAsset,
                 userSelectedValidatorsProvider);
+
             validators.Setup();
 
             return root;

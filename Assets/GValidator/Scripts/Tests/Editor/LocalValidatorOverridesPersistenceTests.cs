@@ -26,6 +26,8 @@ namespace GValidator.Tests
             _overridesPersistence.Save(new[] { "First", "Second" }, new[] { "First" });
 
             Assert.That(_overridesPersistence.HasOverrides, Is.True);
+            Assert.That(_overridesPersistence.GetOverriddenValidatorIds(),
+                Is.EquivalentTo(new[] { "Second" }));
             Assert.That(_overridesPersistence.GetEnabledValidators(new[] { "First", "Second" }),
                 Is.EquivalentTo(new[] { "First" }));
         }
@@ -35,6 +37,8 @@ namespace GValidator.Tests
         {
             _overridesPersistence.Save(new[] { "First" }, new[] { "First", "Second" });
 
+            Assert.That(_overridesPersistence.GetOverriddenValidatorIds(),
+                Is.EquivalentTo(new[] { "Second" }));
             Assert.That(_overridesPersistence.GetEnabledValidators(new[] { "First" }),
                 Is.EquivalentTo(new[] { "First", "Second" }));
         }
@@ -46,6 +50,8 @@ namespace GValidator.Tests
 
             Assert.That(_overridesPersistence.GetEnabledValidators(new[] { "First", "Second", "Fourth" }),
                 Is.EquivalentTo(new[] { "First", "Third", "Fourth" }));
+            Assert.That(_overridesPersistence.GetOverriddenValidatorIds(),
+                Is.EquivalentTo(new[] { "Second", "Third" }));
         }
 
         [Test]
@@ -55,6 +61,7 @@ namespace GValidator.Tests
             _overridesPersistence.Clear();
 
             Assert.That(_overridesPersistence.HasOverrides, Is.False);
+            Assert.That(_overridesPersistence.GetOverriddenValidatorIds(), Is.Empty);
             Assert.That(_overridesPersistence.GetEnabledValidators(new[] { "First", "Second" }),
                 Is.EquivalentTo(new[] { "First", "Second" }));
         }

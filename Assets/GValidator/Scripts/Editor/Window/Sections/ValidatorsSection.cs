@@ -1,5 +1,5 @@
 using GValidator.Models;
-using GValidator.Providers;
+using GValidator.SharedEditors;
 using GValidator.Window.Providers;
 using UnityEngine.UIElements;
 
@@ -7,24 +7,25 @@ namespace GValidator.Window.Sections
 {
     public sealed class ValidatorsSection
     {
-        readonly ValidatorsList _validatorsList;
+        readonly ValidatorsListEditor _validatorsListEditor;
 
         public ValidatorsSection(
             GValidatorWindowReferences references,
             VisualTreeAsset validatorEntryAsset,
             UserSelectedValidatorsProvider userSelectedValidatorsProvider)
         {
-            _validatorsList = new ValidatorsList(
+            _validatorsListEditor = new ValidatorsListEditor(
                 references.ValidatorList,
                 references.ValidatorListEmpty,
                 validatorEntryAsset,
-                userSelectedValidatorsProvider);
-            _validatorsList.Setup();
+                userSelectedValidatorsProvider,
+                true);
+            _validatorsListEditor.Setup();
         }
 
         public void Refresh()
         {
-            _validatorsList.Setup();
+            _validatorsListEditor.Setup();
         }
     }
 }

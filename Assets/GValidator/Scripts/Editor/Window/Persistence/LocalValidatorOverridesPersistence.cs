@@ -29,6 +29,18 @@ namespace GValidator.Window.Providers
             return new List<string>(enabled);
         }
 
+        public IReadOnlyList<string> GetOverriddenValidatorIds()
+        {
+            if (!HasOverrides) return Array.Empty<string>();
+
+            string overridesJson = EditorPrefs.GetString(_key) ?? string.Empty;
+            ValidatorOverrides overrides = JsonUtility.FromJson<ValidatorOverrides>(overridesJson);
+            List<string> overriddenIds = new(overrides.EnabledOverrides);
+            overriddenIds.AddRange(overrides.DisabledOverrides);
+
+            return overriddenIds;
+        }
+
         public void Save(
             IReadOnlyList<string> projectEnabledValidators,
             IReadOnlyList<string> localEnabledValidators)
