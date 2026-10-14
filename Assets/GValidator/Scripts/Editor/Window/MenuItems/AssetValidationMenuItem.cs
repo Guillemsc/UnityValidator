@@ -1,4 +1,4 @@
-using GValidator.Windows;
+using GValidator.Window.Windows;
 using UnityEditor;
 using UnityEngine;
 

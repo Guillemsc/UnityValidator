@@ -1,8 +1,8 @@
 using System.Collections.Generic;
+using GValidator.Configuration;
 using GValidator.Models;
 using GValidator.Providers;
 using GValidator.Sections;
-using GValidator.Validation.Assets;
 using GValidator.Validation.AssetSources;
 using GValidator.Validation.Validators;
 using GValidator.Window.Providers;
@@ -12,7 +12,7 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using Object = UnityEngine.Object;
 
-namespace GValidator.Windows
+namespace GValidator.Window.Windows
 {
     public sealed class GValidatorWindow : EditorWindow
     {
@@ -100,7 +100,16 @@ namespace GValidator.Windows
             SelectedAssetsSourcesProvider selectedAssetsSourcesProvider = new(assetSources);
             
             CurrentValidationProvider currentValidationProvider = new();
-            SelectedValidatorsProvider selectedValidatorsProvider = new(ValidatorsFactory.CreateAll());
+            GValidatorConfiguration configuration = GlobalConfigurationProvider.GetOrCreate();
+            SelectedValidatorsProvider selectedValidatorsProvider = new(
+                ValidatorsFactory.CreateAll(),
+                configuration.EnabledValidators,
+                configuration.ValidatorsConfigured,
+                enabledValidators =>
+                {
+                    configuration.SetEnabledValidators(enabledValidators);
+                    EditorUtility.SetDirty(configuration);
+                });
             SelectedValidationMessageProvider selectedValidationMessageProvider = new();
 
             SourcesSection sourcesSection = new(

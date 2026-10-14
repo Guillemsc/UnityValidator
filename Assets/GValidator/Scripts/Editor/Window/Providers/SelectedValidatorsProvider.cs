@@ -1,17 +1,32 @@
+using System;
 using System.Collections.Generic;
 using GValidator.Validation.Models;
 using GValidator.Validation.Validators;
 
-namespace GValidator.Providers
+namespace GValidator.Window.Providers
 {
     public sealed class SelectedValidatorsProvider
     {
         public IReadOnlyList<ValidatorEntry> All { get; }
         readonly HashSet<ValidatorEntry> _disabledValidators = new();
+        readonly Action<IReadOnlyList<string>>? _selectionChanged;
 
-        public SelectedValidatorsProvider(IReadOnlyList<ValidatorEntry> allValidators)
+        public SelectedValidatorsProvider(
+            IReadOnlyList<ValidatorEntry> allValidators,
+            IReadOnlyList<string>? enabledValidatorIds = null,
+            bool selectionConfigured = false,
+            Action<IReadOnlyList<string>>? selectionChanged = null)
         {
             All = allValidators;
+            _selectionChanged = selectionChanged;
+
+            if (!selectionConfigured || enabledValidatorIds == null) return;
+
+            HashSet<string> enabledIds = new(enabledValidatorIds);
+            foreach (ValidatorEntry validator in All)
+            {
+                SetInitialSelection(validator, enabledIds);
+            }
         }
 
         public IReadOnlyList<ValidatorEntry> GetSelected()
@@ -44,6 +59,19 @@ namespace GValidator.Providers
             {
                 _disabledValidators.Add(source);
             }
+
+            _selectionChanged?.Invoke(GetSelectedValidatorIds());
+        }
+
+        public IReadOnlyList<string> GetSelectedValidatorIds()
+        {
+            List<string> selected = new();
+            foreach (ValidatorEntry validator in All)
+            {
+                AddSelectedIds(validator, selected);
+            }
+
+            return selected;
         }
 
         public IReadOnlyList<ValidatorEntry> GetSelectedChildren(ValidatorEntry parent)
@@ -103,6 +131,32 @@ namespace GValidator.Providers
 
             parent.SetDisabledChildren(disabledChildren);
             return enabledChildren.Count > 0;
+        }
+
+        void SetInitialSelection(ValidatorEntry entry, HashSet<string> enabledIds)
+        {
+            if (!enabledIds.Contains(entry.Id))
+            {
+                _disabledValidators.Add(entry);
+            }
+
+            foreach (ValidatorEntry child in entry.Children)
+            {
+                SetInitialSelection(child, enabledIds);
+            }
+        }
+
+        void AddSelectedIds(ValidatorEntry entry, List<string> selected)
+        {
+            if (!_disabledValidators.Contains(entry))
+            {
+                selected.Add(entry.Id);
+            }
+
+            foreach (ValidatorEntry child in entry.Children)
+            {
+                AddSelectedIds(child, selected);
+            }
         }
     }
 }

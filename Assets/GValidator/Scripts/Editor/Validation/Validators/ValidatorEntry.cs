@@ -8,6 +8,7 @@ namespace GValidator.Validation.Validators
     {
         public IValidatorNode Validator { get; }
         public string Name { get; }
+        public string Id => Validator.GetType().FullName!;
         public IReadOnlyList<ValidatorEntry> Children { get; } = Array.Empty<ValidatorEntry>();
         
         public ValidatorEntry(IValidatorNode validator, string name)

@@ -3,6 +3,7 @@ using System.Linq;
 using GValidator.Providers;
 using GValidator.Validation.Models;
 using GValidator.Validation.Validators;
+using GValidator.Window.Providers;
 using NSubstitute;
 using NUnit.Framework;
 

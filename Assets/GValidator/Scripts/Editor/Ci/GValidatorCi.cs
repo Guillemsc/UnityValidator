@@ -16,7 +16,9 @@ namespace GValidator.Ci
 
             ValidationDefinition definition = ValidationDefinitionBuilder.Build(
                 NoOpProgressSink.Instance,
-                configuration.IgnoredFolders);
+                configuration.IgnoredFolders,
+                configuration.EnabledValidators,
+                configuration.ValidatorsConfigured);
 
             ValidationCiRunnerConfiguration runnerConfiguration = new(
                 ReportPath,

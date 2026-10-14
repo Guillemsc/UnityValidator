@@ -8,6 +8,7 @@ using GValidator.Validation.Models;
 using GValidator.Validation.Progress;
 using GValidator.Validation.Validators;
 using GValidator.Validation.Runner;
+using GValidator.Window.Providers;
 
 namespace GValidator.Validation.Ci
 {
@@ -22,6 +23,15 @@ namespace GValidator.Validation.Ci
             IProgressSink progressSink,
             IReadOnlyList<string> ignoredFolders)
         {
+            return Build(progressSink, ignoredFolders, System.Array.Empty<string>(), false);
+        }
+
+        public static ValidationDefinition Build(
+            IProgressSink progressSink,
+            IReadOnlyList<string> ignoredFolders,
+            IReadOnlyList<string> enabledValidatorIds,
+            bool validatorsConfigured)
+        {
             FrameSlicer frameSlicer = new(int.MaxValue);
             
             List<IAssetsSource> assetSources = new();
@@ -33,7 +43,10 @@ namespace GValidator.Validation.Ci
                 frameSlicer,
                 AssetValidationScope.FromPath(),
                 ignoredFolders);
-            SelectedValidatorsProvider validatorsProvider = new(ValidatorsFactory.CreateAll());
+            SelectedValidatorsProvider validatorsProvider = new(
+                ValidatorsFactory.CreateAll(),
+                enabledValidatorIds,
+                validatorsConfigured);
             IReadOnlyList<IValidator> validators = validatorsProvider.GetRunnableValidators();
 
             ValidationContext context = new(validators, assetsProvider, frameSlicer);
