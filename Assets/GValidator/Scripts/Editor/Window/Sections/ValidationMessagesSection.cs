@@ -7,7 +7,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace GValidator.Sections
+namespace GValidator.Window.Sections
 {
     public sealed class ValidationMessagesSection
     {

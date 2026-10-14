@@ -1,13 +1,12 @@
 using System.Collections.Generic;
 using GValidator.Models;
 using GValidator.Providers;
-using GValidator.Validation.Models;
 using GValidator.Validation.Validators;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace GValidator.Sections
+namespace GValidator.Window.Sections
 {
     public sealed class ValidatorsSection
     {

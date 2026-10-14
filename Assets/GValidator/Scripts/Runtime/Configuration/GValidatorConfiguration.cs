@@ -5,8 +5,7 @@ namespace GValidator.Configuration
 {
     public sealed class GValidatorConfiguration : ScriptableObject
     {
-        [SerializeField]
-        List<string> _ignoredFolders = new();
+        [SerializeField] List<string> _ignoredFolders = new();
 
         public IReadOnlyList<string> IgnoredFolders => _ignoredFolders;
     }

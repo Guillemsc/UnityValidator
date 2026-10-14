@@ -10,8 +10,7 @@ namespace GValidator.Validators.Strings
     {
         protected override string? GetErrorMessage(SerializedProperty property)
         {
-            if (property.propertyType != SerializedPropertyType.String)
-                return null;
+            if (property.propertyType != SerializedPropertyType.String) return null;
 
             return string.IsNullOrEmpty(property.stringValue) ? "is empty" : null;
         }

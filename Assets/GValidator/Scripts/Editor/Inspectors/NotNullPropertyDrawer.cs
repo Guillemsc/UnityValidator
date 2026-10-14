@@ -7,11 +7,8 @@ namespace GValidator.Inspectors
     [CustomPropertyDrawer(typeof(NotNullAttribute))]
     public sealed class NotNullPropertyDrawer : PropertyDrawer
     {
-        const float WarningWidth = 68f;
-        const float WarningIconWidth = 16f;
+        const float WarningWidth = 96f;
         const float WarningSpacing = 4f;
-        
-        static readonly GUIContent WarningIcon = EditorGUIUtility.IconContent("console.erroricon.sml");
 
         public override void OnGUI(
             Rect position,
@@ -38,24 +35,7 @@ namespace GValidator.Inspectors
                     warningWidth,
                     position.height);
 
-                Rect warningIconPosition = new(
-                    warningPosition.x,
-                    warningPosition.y,
-                    WarningIconWidth,
-                    EditorGUIUtility.singleLineHeight);
-                
-                GUI.Label(warningIconPosition, WarningIcon);
-
-                Rect warningLabelPosition = new(
-                    warningPosition.x + WarningIconWidth + 2f,
-                    warningPosition.y,
-                    warningPosition.width - WarningIconWidth - 2f,
-                    EditorGUIUtility.singleLineHeight);
-                GUIStyle warningStyle = new(EditorStyles.label)
-                {
-                    normal = { textColor = new Color(1f, 0.35f, 0.35f) }
-                };
-                EditorGUI.LabelField(warningLabelPosition, "Not Null", warningStyle);
+                EditorGUI.HelpBox(warningPosition, "Not Null", MessageType.Error);
             }
 
             EditorGUI.EndProperty();
