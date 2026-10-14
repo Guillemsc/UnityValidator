@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">GValidator banner</title>
+  <desc id="desc">A centered GValidator logo and tagline over a warm orange-to-violet gradient.</desc>
+
+  <defs>
+    <linearGradient id="background" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#d97822"/>
+      <stop offset="38%" stop-color="#e5a248"/>
+      <stop offset="68%" stop-color="#c98ba0"/>
+      <stop offset="100%" stop-color="#724aa4"/>
+    </linearGradient>
+    <radialGradient id="warmGlow" cx="18%" cy="88%" r="62%">
+      <stop offset="0%" stop-color="#ffe078" stop-opacity="0.56"/>
+      <stop offset="100%" stop-color="#ffe078" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="violetGlow" cx="100%" cy="100%" r="62%">
+      <stop offset="0%" stop-color="#69429f" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#69429f" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="textShadow" x="-10%" y="-20%" width="120%" height="150%">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#542665" flood-opacity="0.16"/>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#background)"/>
+  <rect width="1200" height="630" fill="url(#warmGlow)"/>
+  <rect width="1200" height="630" fill="url(#violetGlow)"/>
+
+  <!-- Small, restrained Unity mark -->
+  <g transform="translate(1118 36) scale(0.72)" fill="none" stroke="#fff" stroke-width="9" stroke-linejoin="round" stroke-linecap="round" opacity="0.96">
+    <path d="m32 0 25 14v29L32 57 7 43V14L32 0Z"/>
+    <path d="m7 14 25 14 25-14M32 28v29"/>
+    <path d="M7 43 0 47m64-4 7 4"/>
+  </g>
+
+  <!-- Centered logo lockup -->
+  <g filter="url(#textShadow)">
+    <g transform="translate(302 193) scale(0.34)" fill="none" stroke="#fff" stroke-linejoin="miter">
+      <path d="M181 61 63 103v95c0 67 38 113 118 142 80-29 118-75 118-142v-95L181 61Z" stroke-width="40"/>
+      <path d="m121 203 40 39 79-85" stroke-width="36" stroke-linecap="square"/>
+    </g>
+    <text x="435" y="330" fill="#fff" font-family="Nohemi, Inter, Arial, sans-serif" font-size="108" font-weight="500" letter-spacing="-4">GValidator</text>
+  </g>
+
+  <text x="600" y="408" text-anchor="middle" fill="#3b197f" font-family="Nohemi, Inter, Arial, sans-serif" font-size="42" font-weight="500" letter-spacing="-1.2">Keep your Unity project stable</text>
+</svg>

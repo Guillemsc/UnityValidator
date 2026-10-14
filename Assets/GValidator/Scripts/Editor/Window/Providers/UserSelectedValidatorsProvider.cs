@@ -5,13 +5,15 @@ using GValidator.Validation.Validators;
 
 namespace GValidator.Window.Providers
 {
-    public sealed class SelectedValidatorsProvider
+    public sealed class UserSelectedValidatorsProvider
     {
         public IReadOnlyList<ValidatorEntry> All { get; }
         readonly HashSet<ValidatorEntry> _disabledValidators = new();
         readonly Action<IReadOnlyList<string>>? _selectionChanged;
+        readonly ILocalValidatorOverridesPersistence? _localOverridesPersistence;
+        IReadOnlyList<string> _projectEnabledValidatorIds = Array.Empty<string>();
 
-        public SelectedValidatorsProvider(
+        public UserSelectedValidatorsProvider(
             IReadOnlyList<ValidatorEntry> allValidators,
             IReadOnlyList<string>? enabledValidatorIds = null,
             bool selectionConfigured = false,
@@ -20,6 +22,38 @@ namespace GValidator.Window.Providers
             All = allValidators;
             _selectionChanged = selectionChanged;
 
+            ApplySelection(enabledValidatorIds, selectionConfigured);
+        }
+
+        public UserSelectedValidatorsProvider(
+            IReadOnlyList<ValidatorEntry> allValidators,
+            ILocalValidatorOverridesPersistence localOverridesPersistence,
+            IReadOnlyList<string> projectEnabledValidatorIds,
+            bool projectSelectionConfigured)
+            : this(allValidators, projectEnabledValidatorIds, projectSelectionConfigured)
+        {
+            _localOverridesPersistence = localOverridesPersistence;
+            _projectEnabledValidatorIds = GetSelectedValidatorIds();
+
+            IReadOnlyList<string> localEnabledValidatorIds =
+                _localOverridesPersistence.GetEnabledValidators(_projectEnabledValidatorIds);
+            ApplySelection(localEnabledValidatorIds, true);
+        }
+
+        public void ResetToProjectSettings(
+            IReadOnlyList<string> projectEnabledValidatorIds,
+            bool projectSelectionConfigured)
+        {
+            if (_localOverridesPersistence == null) return;
+
+            _localOverridesPersistence.Clear();
+            ApplySelection(projectEnabledValidatorIds, projectSelectionConfigured);
+            _projectEnabledValidatorIds = GetSelectedValidatorIds();
+        }
+
+        public void ApplySelection(IReadOnlyList<string>? enabledValidatorIds, bool selectionConfigured)
+        {
+            _disabledValidators.Clear();
             if (!selectionConfigured || enabledValidatorIds == null) return;
 
             HashSet<string> enabledIds = new(enabledValidatorIds);
@@ -60,7 +94,9 @@ namespace GValidator.Window.Providers
                 _disabledValidators.Add(source);
             }
 
-            _selectionChanged?.Invoke(GetSelectedValidatorIds());
+            IReadOnlyList<string> selectedValidatorIds = GetSelectedValidatorIds();
+            _localOverridesPersistence?.Save(_projectEnabledValidatorIds, selectedValidatorIds);
+            _selectionChanged?.Invoke(selectedValidatorIds);
         }
 
         public IReadOnlyList<string> GetSelectedValidatorIds()

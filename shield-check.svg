@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 342 380" role="img" aria-labelledby="title desc">
+  <title id="title">Shield with check mark</title>
+  <desc id="desc">A bold black shield outline containing a bold black check mark.</desc>
+
+  <path
+    d="M181 61 63 103v95c0 67 38 113 118 142 80-29 118-75 118-142v-95L181 61Z"
+    fill="none"
+    stroke="#000"
+    stroke-width="40"
+    stroke-linejoin="miter"
+  />
+
+  <path
+    d="m121 203 40 39 79-85"
+    fill="none"
+    stroke="#000"
+    stroke-width="36"
+    stroke-linecap="square"
+    stroke-linejoin="miter"
+  />
+</svg>

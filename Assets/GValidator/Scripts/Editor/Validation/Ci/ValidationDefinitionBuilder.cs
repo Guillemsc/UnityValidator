@@ -43,7 +43,7 @@ namespace GValidator.Validation.Ci
                 frameSlicer,
                 AssetValidationScope.FromPath(),
                 ignoredFolders);
-            SelectedValidatorsProvider validatorsProvider = new(
+            UserSelectedValidatorsProvider validatorsProvider = new(
                 ValidatorsFactory.CreateAll(),
                 enabledValidatorIds,
                 validatorsConfigured);

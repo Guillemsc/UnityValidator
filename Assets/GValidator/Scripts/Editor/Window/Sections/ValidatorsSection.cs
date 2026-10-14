@@ -7,17 +7,24 @@ namespace GValidator.Window.Sections
 {
     public sealed class ValidatorsSection
     {
+        readonly ValidatorsList _validatorsList;
+
         public ValidatorsSection(
             GValidatorWindowReferences references,
             VisualTreeAsset validatorEntryAsset,
-            SelectedValidatorsProvider selectedValidatorsProvider)
+            UserSelectedValidatorsProvider userSelectedValidatorsProvider)
         {
-            ValidatorsList validatorsList = new(
+            _validatorsList = new ValidatorsList(
                 references.ValidatorList,
                 references.ValidatorListEmpty,
                 validatorEntryAsset,
-                selectedValidatorsProvider);
-            validatorsList.Setup();
+                userSelectedValidatorsProvider);
+            _validatorsList.Setup();
+        }
+
+        public void Refresh()
+        {
+            _validatorsList.Setup();
         }
     }
 }

@@ -27,6 +27,7 @@ namespace GValidator.Models
         public Label SourceListEmpty { get; private set; } = null!;
         public ScrollView ValidatorList { get; private set; } = null!;
         public Label ValidatorListEmpty { get; private set; } = null!;
+        public ToolbarButton UseProjectValidatorsButton { get; private set; } = null!;
         public VisualElement ResultsPane { get; private set; } = null!;
         public TwoPaneSplitView ResultsDetailSplit { get; private set; } = null!;
         public MultiColumnListView ResultsList { get; private set; } = null!;
@@ -60,6 +61,7 @@ namespace GValidator.Models
             SourceListEmpty = Get<Label>(root, "source-list-empty");
             ValidatorList = Get<ScrollView>(root, "validator-list");
             ValidatorListEmpty = Get<Label>(root, "validator-list-empty");
+            UseProjectValidatorsButton = Get<ToolbarButton>(root, "use-project-validators-button");
             ResultsPane = Get<VisualElement>(root, "results-pane");
             ResultsDetailSplit = Get<TwoPaneSplitView>(root, "results-detail-split");
             ResultsList = Get<MultiColumnListView>(root, "results-list");

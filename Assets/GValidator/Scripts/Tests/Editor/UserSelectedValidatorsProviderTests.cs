@@ -9,7 +9,7 @@ using NUnit.Framework;
 
 namespace GValidator.Tests
 {
-    public sealed class SelectedValidatorsProviderTests
+    public sealed class UserSelectedValidatorsProviderTests
     {
         [Test]
         public void ParentValidator_DisablingParentPreservesChildSelections()
@@ -23,7 +23,7 @@ namespace GValidator.Tests
             TestParentValidator parentValidator = new();
             parentValidator.SetChildren(new[] { first, second });
             ValidatorEntry parent = new(parentValidator, "Assets");
-            SelectedValidatorsProvider provider = new(new[] { parent, standalone });
+            UserSelectedValidatorsProvider provider = new(new[] { parent, standalone });
 
             provider.SetSelected(second, false);
             provider.SetSelected(parent, false);
@@ -55,7 +55,7 @@ namespace GValidator.Tests
             ValidatorEntry nested = new(nestedValidator, "Nested");
             rootValidator.Children.Returns(new[] { nested });
             ValidatorEntry root = new(rootValidator, "Root");
-            SelectedValidatorsProvider provider = new(new[] { root });
+            UserSelectedValidatorsProvider provider = new(new[] { root });
 
             provider.SetSelected(root, false);
             Assert.That(provider.GetSelected(), Is.Empty);
@@ -80,7 +80,7 @@ namespace GValidator.Tests
             ValidatorEntry second = new(secondValidator, "Second");
             parentValidator.Children.Returns(new[] { first, second });
             ValidatorEntry parent = new(parentValidator, "Parent");
-            SelectedValidatorsProvider provider = new(new[] { parent });
+            UserSelectedValidatorsProvider provider = new(new[] { parent });
 
             provider.GetRunnableValidators();
 
@@ -96,6 +96,71 @@ namespace GValidator.Tests
 
             provider.SetSelected(first, false);
             Assert.That(provider.GetRunnableValidators(), Is.Empty);
+        }
+
+        [Test]
+        public void LocalOverrides_LoadAndSaveBothSelectionDirections()
+        {
+            IValidator firstValidator = Substitute.For<IValidator>();
+            TestParentValidator secondValidator = new();
+            ValidatorEntry first = new(firstValidator, "First");
+            ValidatorEntry second = new(secondValidator, "Second");
+            ILocalValidatorOverridesPersistence persistence =
+                Substitute.For<ILocalValidatorOverridesPersistence>();
+            persistence.GetEnabledValidators(Arg.Any<IReadOnlyList<string>>())
+                .Returns(new[] { second.Id });
+
+            UserSelectedValidatorsProvider provider = new(
+                new[] { first, second },
+                persistence,
+                new[] { first.Id },
+                true);
+
+            persistence.Received(1).GetEnabledValidators(
+                Arg.Is<IReadOnlyList<string>>(ids => ids.Count == 1 && ids[0] == first.Id));
+            Assert.That(provider.IsSelected(first), Is.False);
+            Assert.That(provider.IsSelected(second), Is.True);
+
+            provider.SetSelected(first, true);
+            persistence.Received(1).Save(
+                Arg.Is<IReadOnlyList<string>>(ids => ids.Count == 1 && ids[0] == first.Id),
+                Arg.Is<IReadOnlyList<string>>(ids => ids.Count == 2 && ids.Contains(first.Id) && ids.Contains(second.Id)));
+
+            provider.SetSelected(second, false);
+            persistence.Received(1).Save(
+                Arg.Is<IReadOnlyList<string>>(ids => ids.Count == 1 && ids[0] == first.Id),
+                Arg.Is<IReadOnlyList<string>>(ids => ids.Count == 1 && ids[0] == first.Id));
+        }
+
+        [Test]
+        public void ResetToProjectSettings_ClearsOverridesAndRestoresCurrentProjectSelection()
+        {
+            IValidator firstValidator = Substitute.For<IValidator>();
+            TestParentValidator secondValidator = new();
+            ValidatorEntry first = new(firstValidator, "First");
+            ValidatorEntry second = new(secondValidator, "Second");
+            ILocalValidatorOverridesPersistence persistence =
+                Substitute.For<ILocalValidatorOverridesPersistence>();
+            persistence.GetEnabledValidators(Arg.Any<IReadOnlyList<string>>())
+                .Returns(new[] { second.Id });
+
+            UserSelectedValidatorsProvider provider = new(
+                new[] { first, second },
+                persistence,
+                new[] { first.Id },
+                true);
+
+            provider.ResetToProjectSettings(new[] { first.Id, second.Id }, true);
+
+            persistence.Received(1).Clear();
+            persistence.DidNotReceiveWithAnyArgs().Save(default!, default!);
+            Assert.That(provider.IsSelected(first), Is.True);
+            Assert.That(provider.IsSelected(second), Is.True);
+
+            provider.SetSelected(first, false);
+            persistence.Received(1).Save(
+                Arg.Is<IReadOnlyList<string>>(ids => ids.Count == 2 && ids.Contains(first.Id) && ids.Contains(second.Id)),
+                Arg.Is<IReadOnlyList<string>>(ids => ids.Count == 1 && ids[0] == second.Id));
         }
 
         [Test]

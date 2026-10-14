@@ -23,14 +23,14 @@ namespace GValidator.Window.Sections
     public sealed class ToolbarSection
     {
         readonly GValidatorWindowReferences _references;
-        readonly SelectedValidatorsProvider _validatorsProvider;
+        readonly UserSelectedValidatorsProvider _validatorsProvider;
         readonly CurrentValidationProvider _currentValidationProvider;
         readonly SelectedAssetsSourcesProvider _assetsSourcesProvider;
         AssetValidationScope _currentScope = AssetValidationScope.FromPath();
 
         public ToolbarSection(
             GValidatorWindowReferences references, 
-            SelectedValidatorsProvider validatorsProvider, 
+            UserSelectedValidatorsProvider validatorsProvider, 
             CurrentValidationProvider currentValidationProvider,
             SelectedAssetsSourcesProvider assetsSourcesProvider)
         {

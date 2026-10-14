@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 337 193" role="img" aria-labelledby="title desc">
+  <title id="title">Warm orange, gold and violet gradient</title>
+  <desc id="desc">A warm orange gradient with a golden lower-left corner and violet lower-right corner.</desc>
+
+  <defs>
+    <linearGradient id="base" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#d96116"/>
+      <stop offset="35%" stop-color="#e27a27"/>
+      <stop offset="62%" stop-color="#dc9a78"/>
+      <stop offset="82%" stop-color="#bd80a2"/>
+      <stop offset="100%" stop-color="#7048a3"/>
+    </linearGradient>
+    <linearGradient id="goldGlow" x1="0%" y1="100%" x2="72%" y2="18%">
+      <stop offset="0%" stop-color="#ffdf70" stop-opacity="0.72"/>
+      <stop offset="34%" stop-color="#f7bd55" stop-opacity="0.34"/>
+      <stop offset="72%" stop-color="#ef9f4c" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#ef9f4c" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="violetGlow" x1="100%" y1="100%" x2="46%" y2="32%">
+      <stop offset="0%" stop-color="#7047a8" stop-opacity="0.62"/>
+      <stop offset="48%" stop-color="#8554ad" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#8554ad" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="337" height="193" fill="url(#base)"/>
+  <rect width="337" height="193" fill="url(#goldGlow)"/>
+  <rect width="337" height="193" fill="url(#violetGlow)"/>
+</svg>

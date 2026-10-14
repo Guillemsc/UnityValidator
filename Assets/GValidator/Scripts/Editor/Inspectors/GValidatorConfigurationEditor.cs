@@ -54,7 +54,7 @@ namespace GValidator.Inspectors
             }
 
             GValidatorConfiguration configuration = (GValidatorConfiguration)target;
-            SelectedValidatorsProvider selectedValidatorsProvider = new(
+            UserSelectedValidatorsProvider userSelectedValidatorsProvider = new(
                 ValidatorsFactory.CreateAll(),
                 configuration.EnabledValidators,
                 configuration.ValidatorsConfigured,
@@ -68,7 +68,7 @@ namespace GValidator.Inspectors
                 validatorList,
                 emptyLabel,
                 _validatorEntryAsset,
-                selectedValidatorsProvider);
+                userSelectedValidatorsProvider);
             validators.Setup();
 
             return root;

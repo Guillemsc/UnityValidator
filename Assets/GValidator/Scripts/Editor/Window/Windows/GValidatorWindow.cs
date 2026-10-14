@@ -101,15 +101,16 @@ namespace GValidator.Window.Windows
             
             CurrentValidationProvider currentValidationProvider = new();
             GValidatorConfiguration configuration = GlobalConfigurationProvider.GetOrCreate();
-            SelectedValidatorsProvider selectedValidatorsProvider = new(
-                ValidatorsFactory.CreateAll(),
+            IReadOnlyList<ValidatorEntry> validatorEntries = ValidatorsFactory.CreateAll();
+            
+            ILocalValidatorOverridesPersistence localOverridesPersistence =
+                new LocalValidatorOverridesPersistence(Application.dataPath);
+            
+            UserSelectedValidatorsProvider userSelectedValidatorsProvider = new(
+                validatorEntries,
+                localOverridesPersistence,
                 configuration.EnabledValidators,
-                configuration.ValidatorsConfigured,
-                enabledValidators =>
-                {
-                    configuration.SetEnabledValidators(enabledValidators);
-                    EditorUtility.SetDirty(configuration);
-                });
+                configuration.ValidatorsConfigured);
             SelectedValidationMessageProvider selectedValidationMessageProvider = new();
 
             SourcesSection sourcesSection = new(
@@ -119,7 +120,15 @@ namespace GValidator.Window.Windows
             ValidatorsSection validatorsSection = new(
                 _references,
                 _validatorEntryAsset,
-                selectedValidatorsProvider);
+                userSelectedValidatorsProvider);
+
+            _references.UseProjectValidatorsButton.clicked += () =>
+            {
+                userSelectedValidatorsProvider.ResetToProjectSettings(
+                    configuration.EnabledValidators,
+                    configuration.ValidatorsConfigured);
+                validatorsSection.Refresh();
+            };
             
             ValidationMessagesSection messagesSection = new(
                 _references,
@@ -130,7 +139,7 @@ namespace GValidator.Window.Windows
             
             _toolbarSection = new ToolbarSection(
                 _references,
-                selectedValidatorsProvider,
+                userSelectedValidatorsProvider,
                 currentValidationProvider,
                 selectedAssetsSourcesProvider);
 
