@@ -29,7 +29,7 @@ jobs:
         env:
           BASE_VERSION: ${{ inputs.version }}
         run: |
-          version=$(python3 scripts/release_package.py next-preview "$BASE_VERSION")
+          version=$(python3 Scripts/release_package.py next-preview "$BASE_VERSION")
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "Releasing v$version"
 
@@ -37,7 +37,7 @@ jobs:
         env:
           VERSION: ${{ steps.preview.outputs.version }}
         run: |
-          python3 scripts/release_package.py version "$VERSION"
+          python3 Scripts/release_package.py version "$VERSION"
           git add UnityProject/Assets/GValidator/package.json
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
@@ -51,7 +51,7 @@ jobs:
         env:
           VERSION: ${{ steps.preview.outputs.version }}
         run: |
-          python3 scripts/release_package.py build "dist/GValidator-${VERSION}.unitypackage"
+          python3 Scripts/release_package.py build "dist/GValidator-${VERSION}.unitypackage"
 
       - name: Push version commit and publish prerelease
         env:

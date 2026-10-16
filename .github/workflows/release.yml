@@ -38,7 +38,7 @@ jobs:
         env:
           VERSION: ${{ inputs.version }}
         run: |
-          python3 scripts/release_package.py version "$VERSION"
+          python3 Scripts/release_package.py version "$VERSION"
           git add UnityProject/Assets/GValidator/package.json
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
@@ -52,7 +52,7 @@ jobs:
         env:
           VERSION: ${{ inputs.version }}
         run: |
-          python3 scripts/release_package.py build "dist/GValidator-${VERSION}.unitypackage"
+          python3 Scripts/release_package.py build "dist/GValidator-${VERSION}.unitypackage"
 
       - name: Push version commit and publish release
         env:
