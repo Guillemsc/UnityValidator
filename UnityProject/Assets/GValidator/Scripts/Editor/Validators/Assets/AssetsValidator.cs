@@ -42,7 +42,15 @@ namespace GValidator.Validators.Assets
                 }
                 else if (asset is GameObject prefab)
                 {
-                    await ValidateHierarchyAsync(prefab, validation, context);
+                    bool isPersistentAsset = EditorUtility.IsPersistent(prefab);
+                    if (isPersistentAsset)
+                    {
+                        await ValidateHierarchyAsync(prefab, validation, context);
+                    }
+                    else
+                    {
+                        await ValidateObjectAsync(prefab, validation, context);
+                    }
                 }
                 else
                 {

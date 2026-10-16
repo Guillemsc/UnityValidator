@@ -106,6 +106,39 @@ namespace GValidator.Tests
         }
 
         [Test]
+        public async Task ValidateAsync_DirectGameObjectScopeDoesNotValidateDescendants()
+        {
+            GameObject root = new("Root");
+            GameObject child = new("Child");
+            child.transform.SetParent(root.transform);
+
+            GameObjectAssetsProvider assetsProvider = new(root);
+            IFrameSlicer frameSlicer = Substitute.For<IFrameSlicer>();
+            frameSlicer.TrySlice().Returns(Task.CompletedTask);
+
+            IValidationContext context = Substitute.For<IValidationContext>();
+            context.AssetsProvider.Returns(assetsProvider);
+            context.FrameSlicer.Returns(frameSlicer);
+
+            IAssetValidator validator = Substitute.For<IAssetValidator>();
+            validator.CanValidate(Arg.Any<Object>()).Returns(call => call.Arg<Object>() is GameObject);
+            validator.ValidateAsync(Arg.Any<Object>(), Arg.Any<IValidationBuilder>(), context)
+                .Returns(Task.CompletedTask);
+
+            AssetsValidator dispatcher = new();
+            dispatcher.SetChildren(new[] { new ValidatorEntry(validator, "Game Object") });
+            IProgressScope progress = Substitute.For<IProgressScope>();
+            progress.Step(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<string>()).Returns(progress);
+
+            await dispatcher.ValidateAsync(new ValidationBuilder(), context, progress);
+
+            await validator.Received(1).ValidateAsync(root, Arg.Any<IValidationBuilder>(), context);
+            await validator.DidNotReceive().ValidateAsync(child, Arg.Any<IValidationBuilder>(), context);
+
+            Object.DestroyImmediate(root);
+        }
+
+        [Test]
         public void ValidatorsFactory_DiscoversBuiltInAssetValidators()
         {
             IReadOnlyList<ValidatorEntry> entries = ValidatorsFactory.CreateAll();

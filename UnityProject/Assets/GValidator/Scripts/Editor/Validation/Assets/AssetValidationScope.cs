@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using UnityEditor;
+using UnityEngine;
 
 namespace GValidator.Validation.Assets
 {
@@ -7,6 +9,7 @@ namespace GValidator.Validation.Assets
         AllAssets,
         Folder,
         Asset,
+        GameObject,
     }
 
     public sealed class AssetValidationScope
@@ -69,6 +72,37 @@ namespace GValidator.Validation.Assets
                 new[] { searchFolder },
                 normalizedPath,
                 AssetValidationScopeKind.Asset);
+        }
+
+        public static AssetValidationScope FromGameObject(GameObject gameObject)
+        {
+            string hierarchyPath = GetHierarchyPath(gameObject);
+            string scenePath = gameObject.scene.path;
+            string sceneDisplayName = string.IsNullOrWhiteSpace(scenePath)
+                ? gameObject.scene.name
+                : scenePath;
+
+            return new AssetValidationScope(
+                hierarchyPath,
+                sceneDisplayName + "/" + hierarchyPath,
+                System.Array.Empty<string>(),
+                null,
+                AssetValidationScopeKind.GameObject);
+        }
+
+        static string GetHierarchyPath(GameObject gameObject)
+        {
+            List<string> names = new();
+            Transform? current = gameObject.transform;
+
+            while (current != null)
+            {
+                names.Add(current.name);
+                current = current.parent;
+            }
+
+            names.Reverse();
+            return string.Join("/", names);
         }
     }
 }

@@ -57,6 +57,33 @@ namespace GValidator.Window.MenuItems
             return hasAssetPath;
         }
 
+        [MenuItem("GameObject/Validate", false, 49)]
+        static void ValidateGameObject(MenuCommand command)
+        {
+            GameObject? gameObject = GetSelectedGameObject(command);
+            if (gameObject == null) return;
+
+            bool isPersistentAsset = EditorUtility.IsPersistent(gameObject);
+            if (isPersistentAsset)
+            {
+                GValidatorWindow.OpenAndValidateAsset(gameObject);
+                return;
+            }
+
+            GValidatorWindow.OpenAndValidateGameObject(gameObject);
+        }
+
+        [MenuItem("GameObject/Validate", true)]
+        static bool ValidateGameObjectIsAvailable(MenuCommand command)
+        {
+            GameObject? gameObject = GetSelectedGameObject(command);
+            if (gameObject == null) return false;
+
+            bool isPersistentAsset = EditorUtility.IsPersistent(gameObject);
+            bool isSceneGameObject = gameObject.scene.IsValid();
+            return isPersistentAsset || isSceneGameObject;
+        }
+
         static string GetSelectedAssetPath(MenuCommand command)
         {
             Object contextObject = command.context;
@@ -94,6 +121,11 @@ namespace GValidator.Window.MenuItems
             }
 
             return string.Empty;
+        }
+
+        static GameObject? GetSelectedGameObject(MenuCommand command)
+        {
+            return command.context as GameObject ?? Selection.activeGameObject;
         }
     }
 }

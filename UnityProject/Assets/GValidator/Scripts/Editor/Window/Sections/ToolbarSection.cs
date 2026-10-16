@@ -28,6 +28,7 @@ namespace GValidator.Window.Sections
         readonly CurrentValidationProvider _currentValidationProvider;
         readonly SelectedAssetsSourcesProvider _assetsSourcesProvider;
         AssetValidationScope _currentScope = AssetValidationScope.FromPath();
+        IAssetsProvider? _currentScopedAssetsProvider;
 
         public ToolbarSection(
             GValidatorWindowReferences references, 
@@ -73,12 +74,13 @@ namespace GValidator.Window.Sections
         void OnClearSearchScopeClicked()
         {
             _currentScope = AssetValidationScope.FromPath();
+            _currentScopedAssetsProvider = null;
             SetSearchScopeDisplay(_currentScope);
         }
 
         async void OnRunScopedClicked()
         {
-            await RunValidationAsync(_currentScope);
+            await RunValidationAsync(_currentScope, _currentScopedAssetsProvider);
         }
 
         public Task RunScopeValidationAsync(string scopePath)
@@ -86,17 +88,32 @@ namespace GValidator.Window.Sections
             return RunValidationAsync(AssetValidationScope.FromPath(scopePath));
         }
 
-        async Task RunValidationAsync(AssetValidationScope scope)
+        public Task RunScopeValidationAsync(AssetValidationScope scope)
+        {
+            return RunValidationAsync(scope);
+        }
+
+        public Task RunGameObjectValidationAsync(GameObject gameObject)
+        {
+            AssetValidationScope scope = AssetValidationScope.FromGameObject(gameObject);
+            GameObjectAssetsProvider assetsProvider = new(gameObject);
+            return RunValidationAsync(scope, assetsProvider);
+        }
+
+        async Task RunValidationAsync(
+            AssetValidationScope scope,
+            IAssetsProvider? scopedAssetsProvider = null)
         {
             IReadOnlyList<IValidator> validators = _validatorsProvider.GetRunnableValidators();
 
             _currentScope = scope;
+            _currentScopedAssetsProvider = scopedAssetsProvider;
             SetSearchScopeDisplay(scope);
 
             FrameSlicer frameSlicer = new();
             GValidatorProjectSettings projectSettings = ProjectSettingsProvider.GetOrCreate();
             
-            AssetsProvider assetsProvider = new(
+            IAssetsProvider assetsProvider = scopedAssetsProvider ?? new AssetsProvider(
                 _assetsSourcesProvider.GetSelected(),
                 frameSlicer,
                 scope,
@@ -130,6 +147,16 @@ namespace GValidator.Window.Sections
                 ? UnityEngine.UIElements.DisplayStyle.None
                 : UnityEngine.UIElements.DisplayStyle.Flex;
 
+            bool isGameObjectScope = scope.Kind == AssetValidationScopeKind.GameObject;
+            Texture? icon = isGameObjectScope
+                ? EditorGUIUtility.ObjectContent(null, typeof(GameObject)).image
+                : GetAssetScopeIcon(scope);
+
+            _references.SearchScopeIcon.image = icon ?? EditorGUIUtility.IconContent("Folder Icon").image;
+        }
+
+        static Texture? GetAssetScopeIcon(AssetValidationScope scope)
+        {
             Texture? icon = scope.TargetAssetPath == null
                 ? null
                 : AssetDatabase.GetCachedIcon(scope.TargetAssetPath);
@@ -145,7 +172,7 @@ namespace GValidator.Window.Sections
                 }
             }
 
-            _references.SearchScopeIcon.image = icon ?? EditorGUIUtility.IconContent("Folder Icon").image;
+            return icon;
         }
 
         void OnClearClicked()

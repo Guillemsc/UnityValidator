@@ -213,8 +213,10 @@ namespace GValidator.Tests
                 {
                     IReadOnlyList<string> projectIds = call.Arg<IReadOnlyList<string>>();
                     List<string> enabled = new(projectIds);
+
                     enabled.Remove(first.Id);
                     enabled.Add(second.Id);
+
                     return enabled;
                 });
             persistence.GetOverriddenValidatorIds().Returns(new[] { first.Id, second.Id });

@@ -3,6 +3,7 @@ using GValidator.Configuration;
 using GValidator.Models;
 using GValidator.Providers;
 using GValidator.Validation.AssetSources;
+using GValidator.Validation.Assets;
 using GValidator.Validation.Validators;
 using GValidator.Window.Providers;
 using GValidator.Window.Sections;
@@ -25,7 +26,8 @@ namespace GValidator.Window.Windows
         CurrentValidationProvider? _currentValidationProvider;
         UserSelectedValidatorsProvider? _userSelectedValidatorsProvider;
         ValidatorsSection? _validatorsSection;
-        string? _pendingScopePath;
+        AssetValidationScope? _pendingScope;
+        GameObject? _pendingGameObject;
 
         [MenuItem("Window/GValidator/Validation Window")]
         public static void Open()
@@ -49,15 +51,37 @@ namespace GValidator.Window.Windows
             OpenAndValidateScope(folderPath);
         }
 
+        public static void OpenAndValidateGameObject(GameObject gameObject)
+        {
+            if (gameObject == null || !gameObject.scene.IsValid()) return;
+
+            GValidatorWindow window = OpenAndPrepareWindow();
+            window._pendingScope = AssetValidationScope.FromGameObject(gameObject);
+            window._pendingGameObject = gameObject;
+            window.TryRunPendingAssetValidation();
+        }
+
         static void OpenAndValidateScope(string scopePath)
+        {
+            OpenAndValidateScope(AssetValidationScope.FromPath(scopePath));
+        }
+
+        static void OpenAndValidateScope(AssetValidationScope scope)
+        {
+            GValidatorWindow window = OpenAndPrepareWindow();
+            window._pendingScope = scope;
+            window._pendingGameObject = null;
+            window.TryRunPendingAssetValidation();
+        }
+
+        static GValidatorWindow OpenAndPrepareWindow()
         {
             GValidatorWindow window = GetWindow<GValidatorWindow>();
             window.SetWindowTitle();
             window.minSize = new Vector2(640, 360);
-            window._pendingScopePath = scopePath;
             window.Show();
             window.Focus();
-            window.TryRunPendingAssetValidation();
+            return window;
         }
 
         void SetWindowTitle()
@@ -200,11 +224,20 @@ namespace GValidator.Window.Windows
 
         async void TryRunPendingAssetValidation()
         {
-            if (_toolbarSection == null || string.IsNullOrWhiteSpace(_pendingScopePath)) return;
+            if (_toolbarSection == null || _pendingScope == null) return;
 
-            string scopePath = _pendingScopePath!;
-            _pendingScopePath = null;
-            await _toolbarSection.RunScopeValidationAsync(scopePath);
+            AssetValidationScope scope = _pendingScope;
+            GameObject? gameObject = _pendingGameObject;
+            _pendingScope = null;
+            _pendingGameObject = null;
+
+            if (gameObject != null)
+            {
+                await _toolbarSection.RunGameObjectValidationAsync(gameObject);
+                return;
+            }
+
+            await _toolbarSection.RunScopeValidationAsync(scope);
         }
     }   
 }
