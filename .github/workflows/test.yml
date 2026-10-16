@@ -40,7 +40,7 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
           UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
         with:
-          projectPath: .
+          projectPath: UnityProject
           testMode: EditMode
           githubToken: ${{ secrets.GITHUB_TOKEN }}
           checkName: Unity EditMode tests

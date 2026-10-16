@@ -39,11 +39,11 @@ jobs:
           VERSION: ${{ inputs.version }}
         run: |
           python3 scripts/release_package.py version "$VERSION"
-          git add Assets/GValidator/package.json
+          git add UnityProject/Assets/GValidator/package.json
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           if git diff --cached --quiet; then
-            echo "Assets/GValidator/package.json already has version $VERSION; using the current commit"
+            echo "UnityProject/Assets/GValidator/package.json already has version $VERSION; using the current commit"
           else
             git commit -m "Release v${VERSION}"
           fi

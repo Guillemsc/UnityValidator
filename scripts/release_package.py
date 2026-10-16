@@ -9,7 +9,8 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parent.parent
-PACKAGE_ROOT = Path("Assets/GValidator")
+PROJECT_ROOT = Path("UnityProject")
+PACKAGE_ROOT = PROJECT_ROOT / "Assets/GValidator"
 EXCLUDED_DIRECTORIES = {"examples", "test", "tests", "tests~"}
 EXCLUDED_FILES = {".npmignore"}
 VERSION_PATTERN = re.compile(
@@ -84,7 +85,11 @@ def add_asset(
     archive: tarfile.TarFile, path: Path, meta: bytes, content: bytes | None
 ) -> None:
     guid = guid_from_meta(meta, path.with_name(path.name + ".meta"))
-    add_bytes(archive, f"{guid}/pathname", path.as_posix().encode("utf-8"))
+    add_bytes(
+        archive,
+        f"{guid}/pathname",
+        path.relative_to(PROJECT_ROOT).as_posix().encode("utf-8"),
+    )
     add_bytes(archive, f"{guid}/asset.meta", meta)
     if content is not None:
         add_bytes(archive, f"{guid}/asset", content)
@@ -92,11 +97,22 @@ def add_asset(
 
 def build_unitypackage(output: Path) -> None:
     tracked = subprocess.check_output(
-        ["git", "ls-files", "-z", "--", str(PACKAGE_ROOT), "Assets/GValidator.meta"],
+        [
+            "git",
+            "ls-files",
+            "-z",
+            "--",
+            str(PACKAGE_ROOT),
+            str(PROJECT_ROOT / "Assets/GValidator.meta"),
+        ],
         cwd=ROOT,
     )
     paths = {Path(raw.decode("utf-8")) for raw in tracked.split(b"\0") if raw}
-    paths = {path for path in paths if path == Path("Assets/GValidator.meta") or included(path)}
+    paths = {
+        path
+        for path in paths
+        if path == PROJECT_ROOT / "Assets/GValidator.meta" or included(path)
+    }
 
     package_files = sorted(path for path in paths if path.suffix != ".meta")
     meta_files = sorted(path for path in paths if path.suffix == ".meta")

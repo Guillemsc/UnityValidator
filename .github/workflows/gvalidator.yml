@@ -34,7 +34,7 @@ jobs:
           UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
         uses: game-ci/unity-test-runner@v4
         with:
-          projectPath: .
+          projectPath: UnityProject
           testMode: EditMode
           customParameters: -executeMethod GValidator.Ci.GValidatorCi.Run
           githubToken: ${{ secrets.GITHUB_TOKEN }}
@@ -45,7 +45,7 @@ jobs:
         uses: dorny/test-reporter@v2
         with:
           name: GValidator CI validation
-          path: gvalidator-results.xml
+          path: UnityProject/gvalidator-results.xml
           reporter: java-junit
           fail-on-error: false
 
@@ -54,5 +54,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: GValidator CI report
-          path: gvalidator-results.xml
+          path: UnityProject/gvalidator-results.xml
           if-no-files-found: warn
