@@ -13,6 +13,8 @@ namespace GValidator.Validators.Shaders
     [Validator("Material Shader")]
     public sealed class MaterialShaderValidator : IAssetValidator
     {
+        const string InternalErrorShaderName = "Hidden/InternalErrorShader";
+
         public bool CanValidate(Object asset)
         {
             return asset is Material;
@@ -28,16 +30,25 @@ namespace GValidator.Validators.Shaders
                 return Task.CompletedTask;
             }
 
+            bool usesInternalErrorShader = shader.name == InternalErrorShaderName;
+            if (usesInternalErrorShader)
+            {
+                validation.Error("Material uses Unity's internal error shader");
+                return Task.CompletedTask;
+            }
+
             ShaderMessage[] messages = ShaderUtil.GetShaderMessages(shader);
             foreach (ShaderMessage shaderMessage in messages)
             {
                 bool isError = shaderMessage.severity == ShaderCompilerMessageSeverity.Error;
                 if (!isError) continue;
-
+                
                 bool hasSourceLocation = !string.IsNullOrWhiteSpace(shaderMessage.file) && shaderMessage.line > 0;
+                
                 string location = hasSourceLocation
                     ? $" ({shaderMessage.file}:{shaderMessage.line})"
                     : string.Empty;
+                
                 validation.Error($"Material uses a shader with compilation error: {shaderMessage.message}{location}");
             }
 
