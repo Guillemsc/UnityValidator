@@ -142,6 +142,8 @@ Validation displays a cancellable progress bar. Canceling a run keeps the previo
 
 The **Sources** section controls where validation gets its assets:
 
+<img width="1078" height="388" alt="GVAlidator-Sources" src="https://github.com/user-attachments/assets/512ababf-e462-4c75-82d7-c60bfb7ac3f4" />
+
 - **Assets** includes regular assets and prefabs found through the Asset Database.
 - Each project scene is listed as a separate source.
 - **Select Scenes** enables all scene sources.
