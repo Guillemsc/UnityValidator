@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using GValidator.NotNulls.Attributes;
+using GValidator.Attributes;
 using UnityEngine;
 
 namespace GValidator.Examples

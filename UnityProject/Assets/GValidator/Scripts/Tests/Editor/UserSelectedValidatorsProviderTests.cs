@@ -3,6 +3,7 @@ using System.Linq;
 using GValidator.Providers;
 using GValidator.Validation.Models;
 using GValidator.Validation.Validators;
+using GValidator.Validators;
 using GValidator.Window.Providers;
 using NSubstitute;
 using NUnit.Framework;
@@ -102,7 +103,7 @@ namespace GValidator.Tests
         public void ProjectDisabledValidators_NewValidatorsDefaultToEnabled()
         {
             IValidator firstValidator = Substitute.For<IValidator>();
-            TestParentValidator secondValidator = new();
+            TestValidator secondValidator = new();
             ValidatorEntry first = new(firstValidator, "First");
             ValidatorEntry second = new(secondValidator, "Second");
             UserSelectedValidatorsProvider provider = new(new[] { first, second }, new[] { first.Id });
@@ -118,7 +119,7 @@ namespace GValidator.Tests
         public void ProjectDisabledValidators_AllKnownDisabledDoesNotDisableNewValidators()
         {
             IValidator firstValidator = Substitute.For<IValidator>();
-            TestParentValidator newValidator = new();
+            TestValidator newValidator = new();
             ValidatorEntry first = new(firstValidator, "First");
             ValidatorEntry newlyDiscovered = new(newValidator, "New");
             UserSelectedValidatorsProvider provider = new(
@@ -133,7 +134,7 @@ namespace GValidator.Tests
         public void LocalOverrides_LoadAndSaveBothSelectionDirections()
         {
             IValidator firstValidator = Substitute.For<IValidator>();
-            TestParentValidator secondValidator = new();
+            TestValidator secondValidator = new();
             ValidatorEntry first = new(firstValidator, "First");
             ValidatorEntry second = new(secondValidator, "Second");
             ILocalValidatorOverridesPersistence persistence =
@@ -169,7 +170,7 @@ namespace GValidator.Tests
         public void ResetToProjectSettings_ClearsOverridesAndRestoresCurrentProjectSelection()
         {
             IValidator firstValidator = Substitute.For<IValidator>();
-            TestParentValidator secondValidator = new();
+            TestValidator secondValidator = new();
             ValidatorEntry first = new(firstValidator, "First");
             ValidatorEntry second = new(secondValidator, "Second");
             ILocalValidatorOverridesPersistence persistence =
@@ -201,7 +202,7 @@ namespace GValidator.Tests
         public void RefreshProjectSettings_UpdatesInheritedValidatorsAndPreservesLocalOverrides()
         {
             IValidator firstValidator = Substitute.For<IValidator>();
-            TestParentValidator secondValidator = new();
+            TestValidator secondValidator = new();
             IAssetValidator thirdValidator = Substitute.For<IAssetValidator>();
             ValidatorEntry first = new(firstValidator, "First");
             ValidatorEntry second = new(secondValidator, "Second");
@@ -246,7 +247,7 @@ namespace GValidator.Tests
         public void RecreatedProjectSettings_UsesNewDefaultsAndResetClearsLocalOverrides()
         {
             IValidator firstValidator = Substitute.For<IValidator>();
-            TestParentValidator secondValidator = new();
+            IAssetValidator secondValidator = Substitute.For<IAssetValidator>();
             ValidatorEntry first = new(firstValidator, "First");
             ValidatorEntry second = new(secondValidator, "Second");
             ILocalValidatorOverridesPersistence persistence =
@@ -289,7 +290,7 @@ namespace GValidator.Tests
         public void ClearOverride_RestoresProjectSelectionWithoutChangingOtherOverrides()
         {
             IValidator firstValidator = Substitute.For<IValidator>();
-            TestParentValidator secondValidator = new();
+            TestValidator secondValidator = new();
             ValidatorEntry first = new(firstValidator, "First");
             ValidatorEntry second = new(secondValidator, "Second");
             ILocalValidatorOverridesPersistence persistence =

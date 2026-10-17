@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using GValidator.Common.Extensions;
 using GValidator.Configuration;
 using GValidator.Models;
 using GValidator.Providers;
@@ -66,9 +67,9 @@ namespace GValidator.Window.Sections
             SetSearchScopeDisplay(_currentScope);
         }
 
-        async void OnRunAllClicked()
+        void OnRunAllClicked()
         {
-            await RunValidationAsync(AssetValidationScope.FromPath());
+            RunValidationAsync(AssetValidationScope.FromPath()).FireAndForget();
         }
 
         void OnClearSearchScopeClicked()
@@ -78,9 +79,9 @@ namespace GValidator.Window.Sections
             SetSearchScopeDisplay(_currentScope);
         }
 
-        async void OnRunScopedClicked()
+        void OnRunScopedClicked()
         {
-            await RunValidationAsync(_currentScope, _currentScopedAssetsProvider);
+            RunValidationAsync(_currentScope, _currentScopedAssetsProvider).FireAndForget();
         }
 
         public Task RunScopeValidationAsync(string scopePath)

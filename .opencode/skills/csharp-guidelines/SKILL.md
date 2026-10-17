@@ -66,4 +66,4 @@ description: Follow this Unity project's C# style and coding rules when creating
 - Keep changes focused; preserve unrelated user changes and avoid unrelated refactoring.
 - For Unity scripts, preserve existing `.meta` files and add Unity metadata for new scripts/folders when the surrounding project uses it.
 - Keep Unity Editor APIs in editor-only code and avoid using Unity APIs from background threads.
-- After editing, check the diff for whitespace/style issues and build the affected Unity assembly when the project environment allows it.
+- **Do not launch or run the Unity editor**, including Unity batch mode or Unity's test runner. After editing, check the diff for whitespace/style issues and build the affected Unity assembly with the available non-Unity build tooling when possible.

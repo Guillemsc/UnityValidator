@@ -12,13 +12,29 @@ using GValidator.Window.Providers;
 
 namespace GValidator.Validation.Ci
 {
+    /// <summary>
+    /// Builds validation definitions that cover project assets and configured scenes.
+    /// </summary>
     public static class ValidationDefinitionBuilder
     {
+        /// <summary>
+        /// Builds a definition with every discovered validator and no ignored folders.
+        /// </summary>
+        /// <param name="progressSink">Receives validation progress updates.</param>
+        /// <returns>A definition ready to be executed by CI.</returns>
         public static ValidationDefinition Build(IProgressSink progressSink)
         {
             return Build(progressSink, System.Array.Empty<string>());
         }
 
+        /// <summary>
+        /// Builds a definition with every discovered validator.
+        /// </summary>
+        /// <param name="progressSink">Receives validation progress updates.</param>
+        /// <param name="ignoredFolders">
+        /// Project-relative folders to exclude from validation.
+        /// </param>
+        /// <returns>A definition ready to be executed by CI.</returns>
         public static ValidationDefinition Build(
             IProgressSink progressSink,
             IReadOnlyList<string> ignoredFolders)
@@ -26,6 +42,17 @@ namespace GValidator.Validation.Ci
             return Build(progressSink, ignoredFolders, System.Array.Empty<string>());
         }
 
+        /// <summary>
+        /// Builds a definition using the supplied folder and validator exclusions.
+        /// </summary>
+        /// <param name="progressSink">Receives validation progress updates.</param>
+        /// <param name="ignoredFolders">
+        /// Project-relative folders to exclude from validation.
+        /// </param>
+        /// <param name="disabledValidatorIds">
+        /// Stable identifiers of discovered validators that should not run.
+        /// </param>
+        /// <returns>A definition ready to be executed by CI.</returns>
         public static ValidationDefinition Build(
             IProgressSink progressSink,
             IReadOnlyList<string> ignoredFolders,

@@ -1,4 +1,4 @@
-using GValidator.NotNulls.Attributes;
+using GValidator.Attributes;
 using UnityEditor;
 using UnityEngine;
 

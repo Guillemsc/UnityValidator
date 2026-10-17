@@ -45,7 +45,7 @@ namespace GValidator.Window.Providers
             _projectDisabledValidatorIds.Clear();
             _projectDisabledValidatorIds.UnionWith(projectDisabledValidatorIds);
             ApplySelection(projectDisabledValidatorIds);
-            _projectEnabledValidatorIds = GetSelectedValidatorIds();
+            _projectEnabledValidatorIds = GetProjectEnabledValidatorIds();
 
             IReadOnlyList<string> localEnabledValidatorIds =
                 _localOverridesPersistence.GetEnabledValidators(_projectEnabledValidatorIds);
@@ -61,7 +61,7 @@ namespace GValidator.Window.Providers
             _projectDisabledValidatorIds.Clear();
             _projectDisabledValidatorIds.UnionWith(projectDisabledValidatorIds);
             ApplySelection(projectDisabledValidatorIds);
-            _projectEnabledValidatorIds = GetSelectedValidatorIds();
+            _projectEnabledValidatorIds = GetProjectEnabledValidatorIds();
             _overriddenValidatorIds.Clear();
         }
 
@@ -148,7 +148,7 @@ namespace GValidator.Window.Providers
                 _disabledValidators.Remove(source);
             }
 
-            RefreshOverriddenValidatorIds();
+            _overriddenValidatorIds.Remove(source.Id);
         }
 
         public void SetSelected(ValidatorEntry source, bool isSelected)
@@ -222,6 +222,21 @@ namespace GValidator.Window.Providers
             }
 
             return selected;
+        }
+
+        IReadOnlyList<string> GetProjectEnabledValidatorIds()
+        {
+            List<string> enabled = new();
+
+            foreach (ValidatorEntry entry in All)
+            {
+                if (!_projectDisabledValidatorIds.Contains(entry.Id))
+                {
+                    enabled.Add(entry.Id);
+                }
+            }
+
+            return enabled;
         }
 
         public IReadOnlyList<string> GetDisabledValidatorIds()

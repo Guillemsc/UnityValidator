@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using GValidator.Common.Extensions;
 using GValidator.Configuration;
 using GValidator.Models;
 using GValidator.Providers;
@@ -58,7 +60,7 @@ namespace GValidator.Window.Windows
             GValidatorWindow window = OpenAndPrepareWindow();
             window._pendingScope = AssetValidationScope.FromGameObject(gameObject);
             window._pendingGameObject = gameObject;
-            window.TryRunPendingAssetValidation();
+            window.TryRunPendingAssetValidation().FireAndForget();
         }
 
         static void OpenAndValidateScope(string scopePath)
@@ -71,7 +73,7 @@ namespace GValidator.Window.Windows
             GValidatorWindow window = OpenAndPrepareWindow();
             window._pendingScope = scope;
             window._pendingGameObject = null;
-            window.TryRunPendingAssetValidation();
+            window.TryRunPendingAssetValidation().FireAndForget();
         }
 
         static GValidatorWindow OpenAndPrepareWindow()
@@ -184,7 +186,7 @@ namespace GValidator.Window.Windows
                 selectedValidationMessageProvider,
                 currentValidationProvider);
 
-            TryRunPendingAssetValidation();
+            TryRunPendingAssetValidation().FireAndForget();
         }
 
         void OnDisable()
@@ -222,7 +224,7 @@ namespace GValidator.Window.Windows
             _validatorsSection.Refresh();
         }
 
-        async void TryRunPendingAssetValidation()
+        async Task TryRunPendingAssetValidation()
         {
             if (_toolbarSection == null || _pendingScope == null) return;
 

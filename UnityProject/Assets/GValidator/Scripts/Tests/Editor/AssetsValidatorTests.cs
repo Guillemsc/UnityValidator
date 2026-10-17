@@ -162,6 +162,14 @@ namespace GValidator.Tests
                 entry.Validator is AssetsValidator));
         }
 
+        [Test]
+        public void ValidatorsFactory_IgnoresDynamicallyGeneratedValidatorProxies()
+        {
+            Substitute.For<IValidatorWithChildren>();
+
+            Assert.DoesNotThrow(() => ValidatorsFactory.CreateAll());
+        }
+
         sealed class TestAsset : ScriptableObject { }
     }
 }

@@ -16,6 +16,7 @@ namespace GValidator.Validation.Validators
 
             foreach (var assembly in assemblies)
             {
+                if (assembly.IsDynamic) continue;
                 if (IsTestAssembly(assembly)) continue;
 
                 Type[] types = assembly.GetTypes();

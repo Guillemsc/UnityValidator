@@ -74,7 +74,7 @@ namespace GValidator.Tests
             Assert.That(filtered.ErrorCount, Is.EqualTo(1));
             Assert.That(filtered.WarningCount, Is.EqualTo(1));
             Assert.That(filtered.InfoCount, Is.EqualTo(1));
-            Assert.That(result.Messages, Has.Count.EqualTo(4));
+            Assert.That(result.Messages.Count, Is.EqualTo(4));
 
             XDocument report = XDocument.Parse(ValidationReportWriter.ToJUnit(filtered));
             Assert.That(report.Root?.Attribute("failures")?.Value, Is.EqualTo("1"));

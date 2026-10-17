@@ -4,8 +4,19 @@ using GValidator.Validation.Result;
 
 namespace GValidator.Validation.Ci
 {
+    /// <summary>
+    /// Converts validation findings to reports understood by CI test tooling.
+    /// </summary>
     public static class ValidationReportWriter
     {
+        /// <summary>
+        /// Converts a validation result to JUnit XML.
+        /// </summary>
+        /// <param name="result">The validation result to serialize.</param>
+        /// <returns>
+        /// A JUnit test suite where errors are failures, warnings are skipped tests,
+        /// and informational findings are passing tests.
+        /// </returns>
         public static string ToJUnit(IValidationResult result)
         {
             XElement suite = new("testsuite",

@@ -24,6 +24,7 @@ namespace GValidator.Validation.Objects
 
             bool isPrefabAsset = PrefabUtility.IsPartOfPrefabAsset(gameObject);
             bool isPrefabInstance = PrefabUtility.IsPartOfPrefabInstance(gameObject);
+            
             GameObject? prefabRoot = null;
             if (isPrefabInstance)
             {
@@ -45,10 +46,12 @@ namespace GValidator.Validation.Objects
             string prefabAssetPath = prefabAsset != null
                 ? AssetDatabase.GetAssetPath(prefabAsset)
                 : string.Empty;
+            
             bool hasPrefabAssetPath = !string.IsNullOrEmpty(prefabAssetPath);
 
             string basePath;
             Transform hierarchyRoot;
+            
             if (hasPrefabAssetPath)
             {
                 basePath = prefabAssetPath;
@@ -68,6 +71,7 @@ namespace GValidator.Validation.Objects
 
             List<string> hierarchyParts = new();
             Transform? current = gameObject.transform;
+            
             while (current != null)
             {
                 hierarchyParts.Insert(0, current.name);
@@ -82,6 +86,26 @@ namespace GValidator.Validation.Objects
             }
 
             string hierarchyPath = string.Join("/", hierarchyParts);
+
+            if (isPrefabAsset && hasPrefabAssetPath)
+            {
+                GameObject? prefabContentsRoot = null;
+                try
+                {
+                    prefabContentsRoot = PrefabUtility.LoadPrefabContents(prefabAssetPath);
+                    hierarchyParts[0] = prefabContentsRoot.name;
+                    hierarchyPath = string.Join("/", hierarchyParts);
+                }
+                finally
+                {
+                    if (prefabContentsRoot != null)
+                    {
+                        PrefabUtility.UnloadPrefabContents(prefabContentsRoot);
+                    }
+                }
+            }
+
+            
             if (obj is Component component)
             {
                 hierarchyPath = $"{hierarchyPath}/{component.GetType().Name}";
