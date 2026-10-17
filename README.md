@@ -727,6 +727,8 @@ CI checks all scenes and assets under `Assets/` using the committed project sett
 
 If you are stuck or find a bug, [open an issue](https://github.com/Guillemsc/UnityValidator/issues). Include your Unity version, GValidator version or Git revision, installation method, steps to reproduce, and any relevant Console or CI log messages.
 
+Contributions are welcome! See the [contributing guide](CONTRIBUTING.md) for choosing a target release, setting up the project, and opening a pull request.
+
 ## License
 
 GValidator is available under the [MIT License](UnityProject/LICENSE).
