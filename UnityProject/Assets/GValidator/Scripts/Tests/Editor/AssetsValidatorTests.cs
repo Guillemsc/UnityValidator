@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using GValidator.Validation.Assets;
+using GValidator.Validation.AssetsProviders;
 using GValidator.Validation.Builder;
 using GValidator.Validation.Context;
 using GValidator.Validation.FrameSlicing;

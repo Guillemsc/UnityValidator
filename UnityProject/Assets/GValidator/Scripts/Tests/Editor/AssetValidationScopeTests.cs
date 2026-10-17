@@ -1,5 +1,6 @@
 #nullable enable
-using GValidator.Validation.Assets;
+using GValidator.Validation.AssetsProviders;
+using GValidator.Validation.Scope;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;

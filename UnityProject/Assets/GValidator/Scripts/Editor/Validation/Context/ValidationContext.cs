@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using GValidator.Validation.Assets;
+using GValidator.Validation.AssetsProviders;
 using GValidator.Validation.FrameSlicing;
 using GValidator.Validation.Models;
 

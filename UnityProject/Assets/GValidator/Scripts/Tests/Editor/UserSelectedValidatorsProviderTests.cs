@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
-using GValidator.Providers;
 using GValidator.Validation.Models;
 using GValidator.Validation.Validators;
 using GValidator.Validators;
-using GValidator.Window.Providers;
+using GValidator.ValidatorWindow.Persistence;
+using GValidator.ValidatorWindow.Providers;
 using NSubstitute;
 using NUnit.Framework;
 
@@ -241,6 +241,38 @@ namespace GValidator.Tests
             persistence.Received(1).Save(
                 Arg.Is<IReadOnlyList<string>>(ids => ids.Count == 2 && ids.Contains(first.Id) && ids.Contains(third.Id)),
                 Arg.Is<IReadOnlyList<string>>(ids => ids.Count == 1 && ids[0] == second.Id));
+        }
+
+        [Test]
+        public void ProjectEnabledValidators_IncludeChildren()
+        {
+            IAssetValidator childValidator = Substitute.For<IAssetValidator>();
+            ValidatorEntry child = new(childValidator, "Child");
+            TestParentValidator parentValidator = new();
+            parentValidator.SetChildren(new[] { child });
+            ValidatorEntry parent = new(parentValidator, "Parent");
+            ILocalValidatorOverridesPersistence persistence =
+                Substitute.For<ILocalValidatorOverridesPersistence>();
+            persistence.GetEnabledValidators(Arg.Any<IReadOnlyList<string>>())
+                .Returns(call => call.Arg<IReadOnlyList<string>>().ToArray());
+
+            UserSelectedValidatorsProvider provider = new(
+                new[] { parent },
+                persistence,
+                System.Array.Empty<string>());
+
+            persistence.Received(1).GetEnabledValidators(
+                Arg.Is<IReadOnlyList<string>>(ids =>
+                    ids.Count == 2 && ids.Contains(parent.Id) && ids.Contains(child.Id)));
+            Assert.That(provider.IsSelected(parent), Is.True);
+            Assert.That(provider.IsSelected(child), Is.True);
+
+            provider.SetSelected(child, false);
+
+            persistence.Received(1).Save(
+                Arg.Is<IReadOnlyList<string>>(ids =>
+                    ids.Count == 2 && ids.Contains(parent.Id) && ids.Contains(child.Id)),
+                Arg.Is<IReadOnlyList<string>>(ids => ids.Count == 1 && ids[0] == parent.Id));
         }
 
         [Test]

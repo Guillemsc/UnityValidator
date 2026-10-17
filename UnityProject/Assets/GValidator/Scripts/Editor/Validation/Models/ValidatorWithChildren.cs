@@ -11,21 +11,44 @@ using UnityEditor;
 
 namespace GValidator.Validation.Models
 {
+    /// <summary>
+    /// Provides automatic child discovery and selection for a validator composed
+    /// of other validator nodes.
+    /// </summary>
+    /// <typeparam name="TChild">The type of child validator to discover and manage.</typeparam>
     public abstract class ValidatorWithChildren<TChild> : IValidatorWithChildren
         where TChild : IValidatorNode
     {
+        /// <summary>
+        /// Gets the child validators exposed in the validator hierarchy.
+        /// </summary>
         public IReadOnlyList<ValidatorEntry> Children { get; private set; } = Array.Empty<ValidatorEntry>();
+
+        /// <summary>
+        /// Gets all discovered child validator instances.
+        /// </summary>
         protected IReadOnlyList<TChild> ChildValidators { get; private set; } = Array.Empty<TChild>();
+
+        /// <summary>
+        /// Gets the child validator instances currently excluded from execution.
+        /// </summary>
         protected IReadOnlyList<TChild> DisabledChildren { get; private set; } = Array.Empty<TChild>();
 
+        /// <summary>
+        /// Gets the child validator instances currently available for execution.
+        /// </summary>
         protected IEnumerable<TChild> EnabledChildren =>
             ChildValidators.Where(child => !DisabledChildren.Contains(child));
 
+        /// <summary>
+        /// Initializes the validator and discovers concrete child validator types.
+        /// </summary>
         protected ValidatorWithChildren()
         {
             ConfigureChildTypes();
         }
 
+        /// <inheritdoc/>
         public abstract Task ValidateAsync(
             IValidationBuilder validation,
             IValidationContext context,
@@ -54,12 +77,16 @@ namespace GValidator.Validation.Models
             DisabledChildren = Array.Empty<TChild>();
         }
 
-
+        /// <inheritdoc/>
         public void SetDisabledChildren(IReadOnlyList<ValidatorEntry> children)
         {
             DisabledChildren = GetValidators(children);
         }
 
+        /// <summary>
+        /// Replaces the discovered child validators and clears the disabled selection.
+        /// </summary>
+        /// <param name="children">The child validator entries to use.</param>
         public void SetChildren(IReadOnlyList<ValidatorEntry> children)
         {
             Children = children;

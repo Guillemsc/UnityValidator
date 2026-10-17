@@ -4,7 +4,7 @@ using GValidator.Common.Extensions;
 using GValidator.Configuration;
 using GValidator.Validation.Ci;
 using GValidator.Validation.Progress;
-using GValidator.Window.Providers;
+using GValidator.ValidatorWindow.Providers;
 using UnityEditor;
 using UnityEngine;
 
@@ -51,10 +51,10 @@ namespace GValidator.Ci
             {
                 GValidatorProjectSettings projectSettings = ProjectSettingsProvider.GetOrCreate();
 
-                ValidationDefinition definition = ValidationDefinitionBuilder.Build(
-                    NoOpProgressSink.Instance,
-                    projectSettings.IgnoredFolders,
-                    projectSettings.DisabledValidators);
+                ValidationDefinition definition = new ValidationDefinitionBuilder()
+                    .WithIgnoredFolders(projectSettings.IgnoredFolders)
+                    .WithDisabledValidatorIds(projectSettings.DisabledValidators)
+                    .Build();
 
                 ValidationCiRunnerConfiguration runnerConfiguration = new(
                     ReportPath,

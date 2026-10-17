@@ -1,5 +1,5 @@
 using System;
-using GValidator.Window.Providers;
+using GValidator.ValidatorWindow.Persistence;
 using NUnit.Framework;
 
 namespace GValidator.Tests

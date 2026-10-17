@@ -6,37 +6,24 @@
 
 <img width="1640" height="856" alt="GValidator-Banner" src="https://github.com/user-attachments/assets/7ac37688-2e0d-46c2-861c-11062a5b9d0b" />
 
-GValidator helps Unity teams find broken references, invalid assets, scene problems, and project-specific mistakes before they reach a build.
+GValidator checks your Unity project for problems such as missing scripts, broken UnityEvent listeners, and shader errors. Run it in the Editor to find the affected objects, or in continuous integration (CI) to catch problems before merging changes.
 
-Run validation from a dedicated Editor window, validate one asset or folder from the Project window, or enforce the same rules in CI. Results identify the validator, affected object, and full asset or hierarchy path, and can be exported as XML.
+**You can use the built-in checks without writing any code.** Add attributes or custom rules when you want to check requirements specific to your game.
 
-**Package ID:** `com.guillemsc.gvalidator`
+- **Check what you need:** the whole project, selected scenes, one folder, or one object.
+- **Find and fix issues:** filter results by severity and inspect the object and path for each finding.
+- **Share team rules:** configure ignored folders, enabled validators, and accepted exceptions.
+- **Automate checks:** run in Unity batch mode and export JUnit XML reports for CI.
 
-**Editor menu:** **Window → GValidator → Validation Window**
+**Start here:** [Install GValidator](#installation), then [run your first check](#quick-start).
 
-<img width="970" height="648" alt="image" src="https://github.com/user-attachments/assets/38663991-fa89-4626-89af-65f1ee80c4c3" />
-
-
-## Features
-
-- Validate the entire `Assets/` folder, one folder, or one asset.
-- Validate regular assets, `ScriptableObject`s, prefabs, scenes, `GameObject`s, and components.
-- Select which scenes and validation rules to run.
-- Ignore generated, third-party, or other project folders globally.
-- Suppress individual findings with a project-shared reason, including in CI.
-- Filter results by info, warning, and error severity.
-- Inspect and copy validation messages and object paths.
-- Export results as formatted JUnit XML.
-- Run the same validation in Unity batch mode and CI.
-- Add validation directly to your own components with `IValidable`.
-- Add reusable custom validators for project-wide rules.
-- Keep the Editor responsive with cancellable progress and frame slicing.
+<img width="970" height="648" alt="GValidator window showing validation sources, rules, and results" src="https://github.com/user-attachments/assets/38663991-fa89-4626-89af-65f1ee80c4c3" />
 
 ## Contents
 
+- [Requirements](#requirements)
 - [Installation](#installation)
 - [Quick start](#quick-start)
-- [Integrating GValidator into your project](#integrating-gvalidator-into-your-project)
 - [Using the validation window](#using-the-validation-window)
 - [Validating an asset or folder](#validating-an-asset-or-folder)
 - [Sharing project settings](#sharing-project-settings)
@@ -47,110 +34,94 @@ Run validation from a dedicated Editor window, validate one asset or folder from
 - [Exporting results](#exporting-results)
 - [Running in CI](#running-in-ci)
 - [Troubleshooting](#troubleshooting)
+- [Getting help](#getting-help)
 
 ## Requirements
 
-GValidator runs in the Unity Editor and Unity batch mode. The current package is tested with Unity `6000.3.23f1`. Other Unity versions have not yet been verified.
+GValidator runs in the Unity Editor and Unity batch mode. See [ProjectVersion.txt](UnityProject/ProjectSettings/ProjectVersion.txt) for the Unity version used for development and testing. Other Unity versions have not yet been verified. You do not need to enter Play mode to run validation.
 
 ## Installation
 
-### OpenUPM (recommended)
+Install GValidator into **your existing Unity project** using one of the methods below. You do not need to clone this repository or open its example project.
 
-If you use the [OpenUPM CLI](https://openupm.com/docs/getting-started-cli.html), run this command from your Unity project directory:
+### OpenUPM through Unity (recommended)
+
+1. Open your project in Unity.
+2. Go to **Edit → Project Settings → Package Manager**.
+3. Under **Scoped Registries**, add the following registry and click **Apply**:
+
+   | Field | Value |
+   | --- | --- |
+   | Name | `OpenUPM` |
+   | URL | `https://package.openupm.com` |
+   | Scope(s) | `com.guillemsc` |
+
+   If OpenUPM is already listed, add `com.guillemsc` to its scopes.
+4. Open **Window → Package Management → Package Manager** (or **Window → Package Manager**, depending on your Unity version).
+5. Select **+ → Install package by name** (called **Add package by name** in some versions).
+6. Enter `com.guillemsc.gvalidator` as the name. Leave the version empty to install the latest published release, then click **Install**.
+7. Wait for Unity to finish compiling, then open **Window → GValidator → Validation Window**.
+
+See the [OpenUPM package page](https://openupm.com/packages/com.guillemsc.gvalidator/) for published versions.
+
+<details>
+<summary>Already using the OpenUPM CLI?</summary>
+
+Run this command from your Unity project root (the folder containing `Assets`, `Packages`, and `ProjectSettings`):
 
 ```sh
 openupm add com.guillemsc.gvalidator
 ```
 
-To configure OpenUPM manually, add its scoped registry and the GValidator dependency to `Packages/manifest.json`:
-
-```json
-{
-  "scopedRegistries": [
-    {
-      "name": "OpenUPM",
-      "url": "https://package.openupm.com",
-      "scopes": ["com.guillemsc"]
-    }
-  ],
-  "dependencies": {
-    "com.guillemsc.gvalidator": "1.0.0"
-  }
-}
-```
-
-Replace `1.0.0` with the version you want to use. See the [OpenUPM package page](https://openupm.com/packages/com.guillemsc.gvalidator/) for published versions.
+</details>
 
 ### Git URL
 
-1. Open **Window → Package Manager** in Unity.
-2. Select **+ → Install package from git URL**.
-3. Enter a versioned package URL, replacing `RELEASE_TAG` with the version you want to install:
+Git must be installed and available to Unity. Releases use branches named `release/x.x.x`.
+
+1. Find the release branch you want to install in the repository's [branch list](https://github.com/Guillemsc/UnityValidator/branches).
+2. Replace `x.x.x` in the URL below with the version from that branch's name.
+3. Open the **Package Manager**, select **+ → Install package from git URL** (or **Add package from git URL**), and paste your completed URL:
 
 ```text
-https://github.com/Guillemsc/UnityValidator.git?path=/Assets/GValidator#RELEASE_TAG
+https://github.com/Guillemsc/UnityValidator.git?path=/UnityProject/Assets/GValidator#release/x.x.x
 ```
 
-Always pin the URL to a release tag or commit so package updates are intentional. The package path changed after `v1.0.0`; for revisions using the repository's current layout, use:
-
-```text
-https://github.com/Guillemsc/UnityValidator.git?path=/UnityProject/Assets/GValidator#TAG_OR_COMMIT
-```
-
-You can also add the dependency to `Packages/manifest.json`:
-
-```json
-{
-  "dependencies": {
-    "com.guillemsc.gvalidator": "https://github.com/Guillemsc/UnityValidator.git?path=/Assets/GValidator#RELEASE_TAG"
-  }
-}
-```
+`x.x.x` is a placeholder, not a branch to install literally. To switch releases later, install using the URL for the new release branch. Use OpenUPM above if you prefer to select published updates through Package Manager.
 
 ### Release download
 
 For releases that provide one, you can download the attached `.unitypackage` from [GitHub Releases](https://github.com/Guillemsc/UnityValidator/releases) and import it through **Assets → Import Package → Custom Package**.
 
-OpenUPM or a pinned Git dependency is preferable for most teams because Unity records the dependency in `Packages/manifest.json`. A `.unitypackage` copies files into `Assets/`, so updates and removals must be managed manually.
+OpenUPM or a Git dependency is preferable for most teams because Unity records the dependency in `Packages/manifest.json`. A `.unitypackage` copies files into `Assets/`, so updates and removals must be managed manually.
 
-### Verify the installation
+### Finish setup
 
-Wait for Unity to finish importing and compiling. Then open **Window → GValidator → Validation Window**. If the menu appears, the package is ready to use.
+Wait for Unity to finish importing and compiling, then open **Window → GValidator → Validation Window**. If the menu is missing, check the Unity Console for compilation errors.
+
+For a Package Manager installation, commit `Packages/manifest.json` and `Packages/packages-lock.json` so teammates get the same dependency.
 
 ## Quick start
 
+### Run your first check
+
+1. In Unity's **Project** window, right-click a prefab or a folder containing your assets.
+2. Choose **Validate**. GValidator opens and runs the enabled checks on that selection.
+3. Select a result row to read the full message and object path. Click its object to locate it in Unity.
+4. Fix the issue, then click **Run Scoped** to check the same selection again.
+
+After a completed run, an empty result list means there are no visible findings. If you expected results, check the severity filters, selected sources, and enabled validators. GValidator reports problems; you make the fixes in your project.
+
+### Check the whole project
+
 1. Open **Window → GValidator → Validation Window**.
-2. Leave **Assets** enabled and select any scenes you want to inspect.
-3. Leave all validators enabled for the first run.
-4. Click **Run All**.
-5. Select a finding to inspect its message, validator, object, and path.
-6. Fix the issue or suppress it with a reason if it is an accepted exception.
+2. Under **Sources**, enable **Assets** for assets and prefabs, and click **Select Scenes** to include all scenes.
+3. Leave the built-in **Validators** enabled for your first run.
+4. Click **Run All**. This checks the selected sources under `Assets/`, even if you previously ran a scoped check.
 
 The result counters in the top-right show the number of info messages, warnings, and errors. Use the counters as toggles to show or hide each severity.
 
-For a faster trial, right-click a folder, prefab, or asset in the Project window and choose **Validate**. This opens GValidator and limits the run to your selection.
-
-## Integrating GValidator into your project
-
-A typical team setup is:
-
-1. **Install and run the built-in rules.** Fix existing missing scripts, invalid UnityEvents, shader problems, and other findings.
-2. **Exclude content you do not own.** Add generated and third-party directories to **Ignored Folders**.
-3. **Choose project-wide validators.** Open **Global Configuration** and disable rules that should not run for your project.
-4. **Add domain rules.** Use attributes or `IValidable` for rules tied to your own types; use a custom asset validator for reusable project-wide checks.
-5. **Commit the settings asset.** This gives every developer and CI the same ignored folders, validator defaults, and suppressions.
-6. **Add CI validation.** Run GValidator on pull requests once the project has a clean baseline.
-
-### Assembly definition references
-
-Scripts compiled into Unity's predefined assemblies need no extra setup. If your project uses custom assembly definitions (`.asmdef` files), add the appropriate references:
-
-| Your code | Assembly to reference |
-| --- | --- |
-| Attributes and `IValidable` in runtime code | `GValidator.Runtime` |
-| `IAssetValidator`, `IValidator`, and Editor-only validator base classes | `GValidator.Editor` and `GValidator.Runtime` |
-
-Keep custom `IAssetValidator` and `IValidator` implementations in an Editor-only folder or assembly. They use Unity Editor APIs and must not be included in a player build.
+**Next:** [ignore generated or third-party folders](#ignoring-folders), [share your team's settings](#sharing-project-settings), or [add your own rules](#adding-validation-to-your-project).
 
 ## Using the validation window
 
@@ -159,7 +130,7 @@ Keep custom `IAssetValidator` and `IValidator` implementations in an Editor-only
 | Control | Description |
 | --- | --- |
 | **Run All** | Validates all configured sources below `Assets/`. |
-| **Run Scoped** | Validates only the currently selected folder or asset. |
+| **Run Scoped** | Reruns validation on the folder, asset, or object shown in the toolbar. |
 | **Clear Scope** | Returns the scope to the complete `Assets/` folder. |
 | **Clear** | Clears the current results. |
 | **Global Configuration** | Selects or creates the project's GValidator configuration asset. |
@@ -218,7 +189,7 @@ Open the Inspector context menu for a saved `ScriptableObject` and choose **Vali
 
 ### From a GameObject
 
-Right-click a scene `GameObject` in the Hierarchy and choose **Validate**. GValidator validates that object and its attached components. To validate a prefab, right-click the prefab asset in the Project window instead.
+Right-click a scene `GameObject` in the Hierarchy and choose **Validate**. GValidator validates that object and its attached components, without traversing its children. This direct object check uses the enabled validators but does not use the Sources selection or ignored folders. To validate a prefab hierarchy, right-click the prefab asset in the Project window instead.
 
 ### How scopes work
 
@@ -228,11 +199,11 @@ Right-click a scene `GameObject` in the Hierarchy and choose **Validate**. GVali
 | A folder | Assets and selected scenes below that folder. |
 | A file | Only that asset. |
 
-The current scope is displayed in the top toolbar. A scoped run still respects selected sources, enabled validators, and ignored folders.
+The current scope is displayed in the top toolbar. Folder and asset runs still respect selected sources, enabled validators, and ignored folders. When validating a scene asset, enable that scene in **Sources**.
 
 ## Sharing project settings
 
-Click **Global Configuration** in the validation window to select the project's `GValidatorProjectSettings` asset. If one does not exist, GValidator creates it at:
+GValidator creates a `GValidatorProjectSettings` asset when first needed, including when you open the validation window. Click **Global Configuration** to select it in the Inspector. Its default location is:
 
 ```text
 Assets/GValidatorProjectSettings.asset
@@ -245,6 +216,15 @@ The asset stores the team's:
 - Suppressed findings and their reasons.
 
 Commit both `GValidatorProjectSettings.asset` and its `.meta` file to version control. The Editor window and CI then use the same baseline. Validator choices made directly in the validation window remain local `EditorPrefs` overrides and are not committed; use the settings asset when changing team defaults.
+
+| Setting | Where to change it | Shared with the team and CI? |
+| --- | --- | --- |
+| Enabled validators | **Global Configuration → Enabled Validators** | Yes |
+| Ignored folders and suppressed findings | **Global Configuration** or a result's **Suppress Finding…** action | Yes |
+| Local validator overrides | **Validators** in the validation window | No |
+| Selected sources and current scope | Validation window | No; CI checks all assets and scenes under `Assets/` |
+
+For a team rollout, run the built-in checks first, exclude generated or third-party content, and fix findings or suppress accepted exceptions. Commit the settings, then [add CI validation](#running-in-ci) once you have a passing baseline.
 
 ## Ignoring folders
 
@@ -262,13 +242,7 @@ Assets/Generated
 Assets/AddressablesContent
 ```
 
-Ignored folders apply everywhere:
-
-- Full-project validation.
-- Folder and asset scopes.
-- Scene validation.
-- Editor XML exports.
-- CI validation.
+Ignored folders apply to full-project, folder, asset, and scene runs, including CI. They exclude content from validation, so it produces no findings in those reports. After changing ignored folders, run validation again to refresh the results and XML export. Direct **Hierarchy → Validate** checks inspect the selected object regardless of ignored folders.
 
 The folder and every descendant are excluded. Matching is case-insensitive and accepts `/` or `\` separators. Matching observes folder boundaries, so ignoring `Assets/Generated` does not ignore `Assets/GeneratedBackup`.
 
@@ -282,73 +256,82 @@ A suppression matches the validator name, severity, exact message text, object p
 
 ## Built-in validation rules
 
-### Not Null
+These checks run automatically on matching objects when their validators are enabled:
 
-Marks serialized references that must be assigned. Null fields are reported during validation and are also identified in the Inspector with an error icon and red **Not Null** text.
+| Rule | What it checks |
+| --- | --- |
+| **Missing Scripts** | Missing `MonoBehaviour` scripts on prefab and scene `GameObject`s. |
+| **GameObject Layer** | Invalid layer indices or unnamed layer slots. |
+| **Shader Compilation** | Shader compiler errors, with source file and line information when available. |
+| **Material Shader** | Materials with no shader or a shader with compilation errors. |
+| **Invalid Unity Events** | Persistent listeners with missing targets, no selected method, or missing/incompatible methods. Disabled listeners are ignored. |
+
+Three more checks run when you opt in through your own scripts:
+
+| Rule | How to use it |
+| --- | --- |
+| **Not Null** | Add `[NotNull]` to a serialized reference that must be assigned. |
+| **String Not Empty** | Add `[StringNotEmpty]` to a serialized string that must contain a value. |
+| **IValidable** | Implement `IValidable` on a component or `ScriptableObject` to report your own findings. |
+
+## Adding validation to your project
+
+Start with the simplest option that fits your rule:
+
+| What you want to check | Use |
+| --- | --- |
+| A reference must be assigned or a string must have a value | [Field attributes](#field-attributes) |
+| A rule belongs to one of your components or ScriptableObjects | [`IValidable`](#option-1-implement-ivalidable) |
+| A reusable rule inspects matching objects without changing their classes | [`IAssetValidator`](#option-2-create-a-reusable-asset-validator) |
+| A reusable rule targets one ScriptableObject type | [`ScriptableObjectValidator<T>`](#option-3-validate-one-scriptableobject-type) |
+| A rule needs complete control over discovery and execution | [`IValidator`](#option-4-create-a-validator-from-scratch) |
+
+### Assembly definition references
+
+If your scripts use Unity's default assemblies, no assembly reference setup is needed. Put Editor-only validators in a folder such as `Assets/Editor/Validators`.
+
+If your project uses custom assembly definitions (`.asmdef` files), select the relevant `.asmdef` in Unity, add these **Assembly Definition References** in the Inspector, and click **Apply**:
+
+| Your code | Assembly references |
+| --- | --- |
+| Attributes and `IValidable` | `GValidator.Runtime` |
+| `IAssetValidator`, `IValidator`, and Editor-only validator base classes | `GValidator.Editor` and `GValidator.Runtime`, plus your assembly containing the types being validated |
+
+For custom validators, use an Editor-only assembly: disable **Any Platform** and include only **Editor**. An `Editor` subfolder inside a custom runtime assembly does not by itself make those scripts Editor-only; give it its own Editor-only `.asmdef`.
+
+### Field attributes
+
+Add `[NotNull]` or `[StringNotEmpty]` to Unity-serialized fields. For example, save this as `Assets/Scripts/CharacterSettings.cs`:
 
 ```csharp
 using GValidator.Attributes;
 using UnityEngine;
 
+[CreateAssetMenu(menuName = "Game/Character Settings")]
 public sealed class CharacterSettings : ScriptableObject
 {
     [SerializeField, NotNull]
     GameObject _characterPrefab;
-}
-```
 
-`NotNull` supports Unity object references, exposed references, and managed references. It can be used on nested serialized fields and collection elements.
-
-### String Not Empty
-
-Marks serialized strings that must contain a value:
-
-```csharp
-using GValidator.Attributes;
-using UnityEngine;
-
-public sealed class CharacterSettings : ScriptableObject
-{
     [SerializeField, StringNotEmpty]
     string _displayName;
+
+    [SerializeField]
+    int _startingHealth = 100;
+
+    public int StartingHealth => _startingHealth;
 }
 ```
 
-### Missing Scripts
+Create an asset with **Assets → Create → Game → Character Settings**, leave the prefab and display name empty, then right-click the asset and choose **Validate**. You should see findings for both fields. Assign a prefab and enter a display name, then rerun validation to clear them.
 
-Reports missing `MonoBehaviour` scripts on `GameObject`s in prefabs and scenes.
+`NotNull` also marks null fields in the Inspector with an error icon and red **Not Null** text. It supports Unity object references, exposed references, managed references, nested serialized fields, and collection elements.
 
-### GameObject Layer
-
-Reports `GameObject`s that use an invalid layer index or an unnamed layer slot.
-
-### Shader Compilation
-
-Reports shader compiler errors. Source file and line information are included when Unity provides them.
-
-### Material Shader
-
-Reports materials that have no shader or use a shader with compilation errors.
-
-### Invalid Unity Events
-
-Checks persistent UnityEvent listeners for:
-
-- Missing targets.
-- No selected method.
-- Methods that no longer exist or do not match the configured argument type.
-
-Disabled persistent listeners are ignored.
-
-### IValidable
-
-Runs project-specific validation implemented directly by a `MonoBehaviour` or `ScriptableObject`. This is usually the simplest way to add domain rules to your own objects.
-
-## Adding validation to your project
+The `StartingHealth` property is used by the custom-validator examples below; field attributes alone do not check its value.
 
 ### Option 1: implement `IValidable`
 
-Use `IValidable` when a rule belongs to one of your own components or `ScriptableObject` types.
+Use `IValidable` when a rule belongs to one of your own components or `ScriptableObject` types. Save this example as `Assets/Scripts/SpawnPoint.cs`:
 
 ```csharp
 using GValidator.Validation.Builder;
@@ -388,11 +371,13 @@ validation.Info("Useful information");
 
 GValidator associates each message with the object and includes its asset or scene hierarchy path in the result.
 
-`IValidable` is part of the runtime assembly, so your component does not need to reference an Editor assembly.
+Attach `SpawnPoint` to a prefab or scene object and include it in a validation run. Leave **IValidable** enabled under **Validators → Assets**. The example reports an error for an unassigned transform and a warning when the radius is zero or negative.
+
+`IValidable` is part of the runtime assembly, so your component does not need to reference an Editor assembly. GValidator calls it during validation; implementing it does not schedule checks during gameplay.
 
 ### Option 2: create a reusable asset validator
 
-Use `IAssetValidator` for a rule that should inspect every matching asset or object in the project. Put the validator in an Editor-only assembly.
+Use `IAssetValidator` for a rule that should inspect every matching asset or object in the selected sources. This example uses `CharacterSettings` from [Field attributes](#field-attributes). Save it as `Assets/Editor/Validators/PositiveStartingHealthValidator.cs` (or in your custom Editor-only assembly):
 
 ```csharp
 using System.Threading.Tasks;
@@ -417,6 +402,7 @@ public sealed class PositiveStartingHealthValidator : IAssetValidator
         IValidationContext context)
     {
         CharacterSettings settings = (CharacterSettings)asset;
+
         if (settings.StartingHealth <= 0)
         {
             validation.Error("Starting Health must be greater than zero");
@@ -436,6 +422,8 @@ GValidator discovers concrete `IAssetValidator` classes automatically. A custom 
 
 The `[Validator]` name is shown in the validator list and results. If the attribute is omitted, GValidator uses the class name.
 
+After Unity compiles, reopen the validation window and look for **Positive Starting Health** under **Validators → Assets**. Set a `CharacterSettings` asset's starting health to `0` and validate it to try the rule.
+
 GValidator supplies regular assets, `ScriptableObject`s, prefab and scene `GameObject`s, and their components to matching validators. Your validator should inspect the supplied object instead of searching the entire Asset Database itself.
 
 For a long-running loop, yield periodically so the Editor stays responsive:
@@ -446,7 +434,7 @@ await context.FrameSlicer.TrySlice();
 
 ### Option 3: validate one ScriptableObject type
 
-For a synchronous rule dedicated to one `ScriptableObject` type, derive from `ScriptableObjectValidator<T>`:
+For a synchronous rule dedicated to one `ScriptableObject` type, derive from `ScriptableObjectValidator<T>`. This is a shorter alternative to Option 2. Use the same `CharacterSettings` class and save this as `Assets/Editor/Validators/CharacterSettingsValidator.cs`:
 
 ```csharp
 using GValidator.Validation.Attributes;
@@ -469,9 +457,12 @@ public sealed class CharacterSettingsValidator
 }
 ```
 
-The base class handles type filtering and passes only matching assets to your validation method.
+The base class handles type filtering and passes only matching assets to your validation method. Choose either this example or Option 2 for starting-health validation; enabling both reports the same problem twice.
 
 ### Option 4: create a validator from scratch
+
+<details>
+<summary>Advanced: custom discovery, iteration, and progress</summary>
 
 Implement `IValidator` when you need complete control over discovery, iteration, progress, and reporting. A standalone validator appears as a top-level entry in the Validators list instead of as a child of **Assets**.
 
@@ -547,16 +538,7 @@ GValidator sets the validator name before calling `ValidateAsync`, so a standalo
 
 As with an `IAssetValidator`, put the class in an Editor-only assembly, make it concrete and non-generic, and provide a parameterless constructor so GValidator can discover it.
 
-### Choosing an extension method
-
-| Requirement | Recommended option |
-| --- | --- |
-| A rule belongs to one component or ScriptableObject | `IValidable` |
-| A serialized reference must be assigned | `[NotNull]` |
-| A serialized string must have a value | `[StringNotEmpty]` |
-| A reusable rule should inspect many object types | `IAssetValidator` |
-| A reusable rule targets one ScriptableObject type | `ScriptableObjectValidator<T>` |
-| A rule needs complete control over discovery and execution | `IValidator` |
+</details>
 
 ## Exporting results
 
@@ -586,11 +568,13 @@ It performs the following steps:
 
 1. Loads the global configuration.
 2. Logs the ignored folders.
-3. Runs all default validation sources and enabled validators.
+3. Checks all assets and scenes under `Assets/` with the validators enabled in the project settings.
 4. Writes `gvalidator-results.xml`.
 5. Exits with code `1` if unsuppressed errors were found, or `0` if validation passed.
 
-Warnings are included in the report but do not fail CI.
+Warnings are included in the report but do not fail CI. Unexpected exceptions also produce exit code `1`.
+
+**CI uses the shared project settings, not your window selections.** Local validator overrides, selected scenes, and the current scope do not limit CI runs. To reproduce CI's coverage in the Editor, click **Clear Overrides**, enable **Assets**, click **Select Scenes**, and choose **Run All**.
 
 ### Run locally in batch mode
 
@@ -598,16 +582,21 @@ Warnings are included in the report but do not fail CI.
 Unity \
   -batchmode \
   -quit \
-  -projectPath /path/to/project \
+  -projectPath "/path/to/your/UnityProject" \
   -executeMethod GValidator.Ci.GValidatorCi.Run \
   -logFile gvalidator.log
 ```
 
-Replace `Unity` with the path to the Unity executable on your operating system.
+Run this from your Unity project root, and replace the project path and `Unity` with your actual paths. Quote executable paths containing spaces. This example uses Bash line continuations; in PowerShell or Command Prompt, put the command on one line.
+
+Use an installed, activated Unity Editor matching your project's version. Close the interactive Editor for that project before starting batch mode. After the run, inspect `gvalidator.log` and `gvalidator-results.xml` in the project directory.
 
 ### GitHub Actions example
 
-This repository provides a reusable workflow that runs validation, publishes the JUnit result as a GitHub check, and uploads the XML report. Add this job to a workflow in your project:
+1. Install GValidator in your project and commit the package dependency and project settings asset.
+2. Configure your repository's **Settings → Secrets and variables → Actions** with the license secrets required by [GameCI's activation instructions](https://game.ci/docs/github/activation). Follow the instructions for your license type (`UNITY_LICENSE`, or the applicable `UNITY_EMAIL`, `UNITY_PASSWORD`, and `UNITY_SERIAL` credentials).
+3. Create `.github/workflows/gvalidator.yml` in **your repository** with the following content.
+4. Set `UNITY_PROJECT_PATH` to `.` if `Assets`, `Packages`, and `ProjectSettings` are at your repository root, or to the relative project folder, such as `UnityProject`.
 
 ```yaml
 name: GValidator CI
@@ -615,26 +604,47 @@ name: GValidator CI
 on:
   push:
   pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  checks: write
+
+env:
+  UNITY_PROJECT_PATH: .
 
 jobs:
   gvalidator:
-    permissions:
-      contents: read
-      checks: write
-    uses: Guillemsc/UnityValidator/.github/workflows/gvalidator.yml@main
-    secrets: inherit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out your project
+        uses: actions/checkout@v4
+
+      - name: Run GValidator
+        uses: game-ci/unity-test-runner@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+        with:
+          projectPath: ${{ env.UNITY_PROJECT_PATH }}
+          testMode: EditMode
+          customParameters: -executeMethod GValidator.Ci.GValidatorCi.Run
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload validation report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gvalidator-results
+          path: ${{ env.UNITY_PROJECT_PATH }}/gvalidator-results.xml
+          if-no-files-found: warn
 ```
 
-If the Unity project is not at the repository root, pass its path:
+Commit and push the workflow. Open your repository's **Actions** tab, select **GValidator CI**, and inspect the run. The `gvalidator-results` artifact contains the XML report, including when validation findings fail the job.
 
-```yaml
-    with:
-      project-path: path/to/UnityProject
-```
-
-Configure the [Unity license secrets required by GameCI](https://game.ci/docs/github/activation). The workflow accepts either `UNITY_LICENSE`, or the Unity credential secrets `UNITY_EMAIL` and `UNITY_PASSWORD`; `UNITY_SERIAL` can also be passed when your license requires it. Pin the workflow reference to a release tag instead of `main` if you prefer reproducible CI configuration.
-
-Commit `GValidatorProjectSettings.asset` so local and CI runs share the same ignored folders, disabled validators, and suppressions.
+The [workflow in this repository](.github/workflows/gvalidator.yml) also shows how to publish the JUnit report as a GitHub check. It is a standalone example, not a reusable workflow callable with a job-level `uses`.
 
 ### Other CI providers
 
@@ -642,13 +652,21 @@ Use the [batch-mode command above](#run-locally-in-batch-mode) in any runner tha
 
 ## Troubleshooting
 
+### Package Manager cannot find GValidator
+
+Check the scoped registry URL (`https://package.openupm.com`) and scope (`com.guillemsc`), then click **Apply**. Use the exact package name `com.guillemsc.gvalidator`. For a Git installation, check that Git is available to Unity, include the complete package path from [Git URL](#git-url), and replace `x.x.x` with an existing release branch's version.
+
+### My installed version does not have a feature shown here
+
+Check the [release notes](https://github.com/Guillemsc/UnityValidator/releases) for the feature's availability and read the README on the branch matching your installed release. For OpenUPM installations, check Package Manager for available updates. For Git installations, update the URL to the appropriate `release/x.x.x` branch as described in [Git URL](#git-url).
+
 ### The GValidator menu is missing
 
 Wait for Unity to finish importing and compiling the package. Then check the Console for compilation errors. The window is available at **Window → GValidator → Validation Window**.
 
 ### My scripts cannot resolve GValidator types
 
-If the scripts are compiled through a custom `.asmdef`, add `GValidator.Runtime` to its assembly references. Editor-only custom validators also need `GValidator.Editor`. Scripts in Unity's predefined assemblies do not need explicit references.
+If the scripts are compiled through a custom `.asmdef`, add `GValidator.Runtime` to its assembly references. Editor-only custom validators also need `GValidator.Editor` and a reference to the assembly defining your own validated types. See [Assembly definition references](#assembly-definition-references).
 
 ### No assets are validated
 
@@ -699,6 +717,14 @@ Check that:
 
 This is expected. Only errors produce exit code `1`. Warnings are represented as skipped testcases in the JUnit report.
 
+### CI reports issues that I do not see locally
+
+CI checks all scenes and assets under `Assets/` using the committed project settings. In the window, clear local validator overrides, enable **Assets** and all scenes, and use **Run All**. Check that the latest settings asset and its `.meta` file are committed, and that the relevant severity filters are visible.
+
+## Getting help
+
+If you are stuck or find a bug, [open an issue](https://github.com/Guillemsc/UnityValidator/issues). Include your Unity version, GValidator version or Git revision, installation method, steps to reproduce, and any relevant Console or CI log messages.
+
 ## License
 
-GValidator is available under the [MIT License](LICENSE).
+GValidator is available under the [MIT License](UnityProject/LICENSE).

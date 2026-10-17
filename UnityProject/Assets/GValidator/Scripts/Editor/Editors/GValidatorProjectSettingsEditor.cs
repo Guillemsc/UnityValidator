@@ -1,7 +1,7 @@
 using GValidator.Configuration;
 using GValidator.SharedEditors;
 using GValidator.Validation.Validators;
-using GValidator.Window.Providers;
+using GValidator.ValidatorWindow.Providers;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;

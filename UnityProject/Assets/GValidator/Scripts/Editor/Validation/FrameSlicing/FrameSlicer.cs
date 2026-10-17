@@ -8,7 +8,7 @@ namespace GValidator.Validation.FrameSlicing
         readonly double _frameBudgetMilliseconds;
         readonly Stopwatch _stopwatch = Stopwatch.StartNew();
 
-        public FrameSlicer(double frameBudgetMilliseconds = 16d)
+        public FrameSlicer(double frameBudgetMilliseconds = 32d)
         {
             _frameBudgetMilliseconds = frameBudgetMilliseconds < 0d
                 ? 0d

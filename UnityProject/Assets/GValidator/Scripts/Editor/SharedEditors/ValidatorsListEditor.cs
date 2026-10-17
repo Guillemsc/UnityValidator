@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using GValidator.Models;
 using GValidator.Validation.Validators;
-using GValidator.Window.Providers;
+using GValidator.ValidatorWindow.Models;
+using GValidator.ValidatorWindow.Providers;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;

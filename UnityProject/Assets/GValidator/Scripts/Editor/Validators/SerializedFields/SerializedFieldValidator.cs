@@ -9,16 +9,27 @@ using Object = UnityEngine.Object;
 
 namespace GValidator.Validators.SerializedFields
 {
+    /// <summary>
+    /// Provides validation for serialized fields marked with a specific attribute.
+    /// </summary>
+    /// <typeparam name="TAttribute">The field attribute that identifies properties to validate.</typeparam>
     public abstract class SerializedFieldValidator<TAttribute> : IAssetValidator
         where TAttribute : Attribute
     {
+        /// <summary>
+        /// Gets an error message when a marked property is invalid.
+        /// </summary>
+        /// <param name="property">The serialized property backed by the marked field.</param>
+        /// <returns>An error message, or <see langword="null"/> when the property is valid.</returns>
         protected abstract string? GetErrorMessage(SerializedProperty property);
 
+        /// <inheritdoc/>
         public bool CanValidate(Object asset)
         {
             return asset is UnityEngine.MonoBehaviour or UnityEngine.ScriptableObject;
         }
 
+        /// <inheritdoc/>
         public async Task ValidateAsync(Object asset, IValidationBuilder validation, IValidationContext context)
         {
             Type objectType = asset.GetType();
