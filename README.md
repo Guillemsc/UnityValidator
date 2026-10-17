@@ -17,7 +17,7 @@ GValidator checks your Unity project for problems such as missing scripts, broke
 
 **Start here:** [Install GValidator](#-installation), then [run your first check](#-quick-start).
 
-<img width="970" height="648" alt="GValidator window showing validation sources, rules, and results" src="https://github.com/user-attachments/assets/38663991-fa89-4626-89af-65f1ee80c4c3" />
+<img width="1078" height="704" alt="GVAlidator-Window" src="https://github.com/user-attachments/assets/fdc4e687-b64a-4e24-809f-ec77040196cc" />
 
 ## Contents
 
