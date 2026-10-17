@@ -15,32 +15,32 @@ GValidator checks your Unity project for problems such as missing scripts, broke
 - **Share team rules:** configure ignored folders, enabled validators, and accepted exceptions.
 - **Automate checks:** run in Unity batch mode and export JUnit XML reports for CI.
 
-**Start here:** [Install GValidator](#installation), then [run your first check](#quick-start).
+**Start here:** [Install GValidator](#-installation), then [run your first check](#-quick-start).
 
 <img width="970" height="648" alt="GValidator window showing validation sources, rules, and results" src="https://github.com/user-attachments/assets/38663991-fa89-4626-89af-65f1ee80c4c3" />
 
 ## Contents
 
-- [Requirements](#requirements)
-- [Installation](#installation)
-- [Quick start](#quick-start)
-- [Using the validation window](#using-the-validation-window)
-- [Validating an asset or folder](#validating-an-asset-or-folder)
-- [Sharing project settings](#sharing-project-settings)
-- [Ignoring folders](#ignoring-folders)
-- [Suppressing individual findings](#suppressing-individual-findings)
-- [Built-in validation rules](#built-in-validation-rules)
-- [Adding validation to your project](#adding-validation-to-your-project)
-- [Exporting results](#exporting-results)
-- [Running in CI](#running-in-ci)
-- [Troubleshooting](#troubleshooting)
-- [Getting help](#getting-help)
+- [📋 Requirements](#-requirements)
+- [📦 Installation](#-installation)
+- [🚀 Quick start](#-quick-start)
+- [🖥 Using the validation window](#-using-the-validation-window)
+- [🔍 Validating an asset or folder](#-validating-an-asset-or-folder)
+- [🤝 Sharing project settings](#-sharing-project-settings)
+- [📁 Ignoring folders](#-ignoring-folders)
+- [🔕 Suppressing individual findings](#-suppressing-individual-findings)
+- [✅ Built-in validation rules](#-built-in-validation-rules)
+- [🛠 Adding validation to your project](#-adding-validation-to-your-project)
+- [📤 Exporting results](#-exporting-results)
+- [🤖 Running in CI](#-running-in-ci)
+- [🔧 Troubleshooting](#-troubleshooting)
+- [💬 Getting help](#-getting-help)
 
-## Requirements
+## 📋 Requirements
 
 GValidator runs in the Unity Editor and Unity batch mode. See [ProjectVersion.txt](UnityProject/ProjectSettings/ProjectVersion.txt) for the Unity version used for development and testing. Other Unity versions have not yet been verified. You do not need to enter Play mode to run validation.
 
-## Installation
+## 📦 Installation
 
 Install GValidator into **your existing Unity project** using one of the methods below. You do not need to clone this repository or open its example project.
 
@@ -101,7 +101,7 @@ Wait for Unity to finish importing and compiling, then open **Window → GValida
 
 For a Package Manager installation, commit `Packages/manifest.json` and `Packages/packages-lock.json` so teammates get the same dependency.
 
-## Quick start
+## 🚀 Quick start
 
 ### Run your first check
 
@@ -121,9 +121,9 @@ After a completed run, an empty result list means there are no visible findings.
 
 The result counters in the top-right show the number of info messages, warnings, and errors. Use the counters as toggles to show or hide each severity.
 
-**Next:** [ignore generated or third-party folders](#ignoring-folders), [share your team's settings](#sharing-project-settings), or [add your own rules](#adding-validation-to-your-project).
+**Next:** [ignore generated or third-party folders](#-ignoring-folders), [share your team's settings](#-sharing-project-settings), or [add your own rules](#-adding-validation-to-your-project).
 
-## Using the validation window
+## 🖥 Using the validation window
 
 ### Run controls
 
@@ -171,7 +171,7 @@ Each result includes:
 
 Select a row to see its full details. The detail message, validator name, and object path are selectable, so they can be copied. Click an object in the results list to select and ping it in Unity.
 
-## Validating an asset or folder
+## 🔍 Validating an asset or folder
 
 You do not need to open the validation window first.
 
@@ -201,7 +201,7 @@ Right-click a scene `GameObject` in the Hierarchy and choose **Validate**. GVali
 
 The current scope is displayed in the top toolbar. Folder and asset runs still respect selected sources, enabled validators, and ignored folders. When validating a scene asset, enable that scene in **Sources**.
 
-## Sharing project settings
+## 🤝 Sharing project settings
 
 GValidator creates a `GValidatorProjectSettings` asset when first needed, including when you open the validation window. Click **Global Configuration** to select it in the Inspector. Its default location is:
 
@@ -224,9 +224,9 @@ Commit both `GValidatorProjectSettings.asset` and its `.meta` file to version co
 | Local validator overrides | **Validators** in the validation window | No |
 | Selected sources and current scope | Validation window | No; CI checks all assets and scenes under `Assets/` |
 
-For a team rollout, run the built-in checks first, exclude generated or third-party content, and fix findings or suppress accepted exceptions. Commit the settings, then [add CI validation](#running-in-ci) once you have a passing baseline.
+For a team rollout, run the built-in checks first, exclude generated or third-party content, and fix findings or suppress accepted exceptions. Commit the settings, then [add CI validation](#-running-in-ci) once you have a passing baseline.
 
-## Ignoring folders
+## 📁 Ignoring folders
 
 Use ignored folders for generated content, imported packages, third-party assets, or any path that should never be validated.
 
@@ -246,7 +246,7 @@ Ignored folders apply to full-project, folder, asset, and scene runs, including 
 
 The folder and every descendant are excluded. Matching is case-insensitive and accepts `/` or `\` separators. Matching observes folder boundaries, so ignoring `Assets/Generated` does not ignore `Assets/GeneratedBackup`.
 
-## Suppressing individual findings
+## 🔕 Suppressing individual findings
 
 Select a result in the validation window and click **Suppress Finding…** in its details. Enter a reason and click **Suppress**. Suppressions are saved to the project settings asset; commit that asset to share them with the team and CI. Results without a stable object path cannot be suppressed.
 
@@ -254,7 +254,7 @@ The window hides suppressed findings by default. Toggle **Show Suppressed** to i
 
 A suppression matches the validator name, severity, exact message text, object path, and Unity object ID when available. If any of these change, the new finding is reported normally. Suppressed findings are excluded from XML exports, CI reports, and the CI failure decision, regardless of the window's **Show Suppressed** setting. They do not disable the validator or skip its execution.
 
-## Built-in validation rules
+## ✅ Built-in validation rules
 
 These checks run automatically on matching objects when their validators are enabled:
 
@@ -274,7 +274,7 @@ Three more checks run when you opt in through your own scripts:
 | **String Not Empty** | Add `[StringNotEmpty]` to a serialized string that must contain a value. |
 | **IValidable** | Implement `IValidable` on a component or `ScriptableObject` to report your own findings. |
 
-## Adding validation to your project
+## 🛠 Adding validation to your project
 
 Start with the simplest option that fits your rule:
 
@@ -540,7 +540,7 @@ As with an `IAssetValidator`, put the class in an Editor-only assembly, make it 
 
 </details>
 
-## Exporting results
+## 📤 Exporting results
 
 After validation completes, click **Export XML** in the bottom-right toolbar.
 
@@ -556,7 +556,7 @@ The export uses formatted JUnit XML and contains:
 
 The Editor export and CI report use the same format, so a report can be opened by tools that support JUnit results.
 
-## Running in CI
+## 🤖 Running in CI
 
 GValidator exposes this Unity batch-mode entry point:
 
@@ -650,7 +650,7 @@ The [workflow in this repository](.github/workflows/gvalidator.yml) also shows h
 
 Use the [batch-mode command above](#run-locally-in-batch-mode) in any runner that has Unity installed and activated. Preserve `gvalidator-results.xml` as a JUnit report artifact. The Unity process exits with code `1` when validation errors are found, so no extra result parsing is required.
 
-## Troubleshooting
+## 🔧 Troubleshooting
 
 ### Package Manager cannot find GValidator
 
@@ -721,7 +721,7 @@ This is expected. Only errors produce exit code `1`. Warnings are represented as
 
 CI checks all scenes and assets under `Assets/` using the committed project settings. In the window, clear local validator overrides, enable **Assets** and all scenes, and use **Run All**. Check that the latest settings asset and its `.meta` file are committed, and that the relevant severity filters are visible.
 
-## Getting help
+## 💬 Getting help
 
 If you are stuck or find a bug, [open an issue](https://github.com/Guillemsc/UnityValidator/issues). Include your Unity version, GValidator version or Git revision, installation method, steps to reproduce, and any relevant Console or CI log messages.
 
