@@ -731,4 +731,4 @@ Contributions are welcome! See the [contributing guide](CONTRIBUTING.md) for cho
 
 ## License
 
-GValidator is available under the [MIT License](UnityProject/LICENSE).
+GValidator is available under the [MIT License](LICENSE).

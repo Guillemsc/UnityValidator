@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+- Added the MIT license to the repository root and distributed Unity package.
+
+## [1.1.0] - 2026-10-17
+
+Stable release of 1.1.0. No functional changes since `1.1.0-preview.2`.
+
+## [1.1.0-preview.2] - 2026-10-17
+
 - Improved setup, custom-validator, CI, and API documentation; added a contributing guide.
 - Fixed child-validator defaults when saving and restoring local overrides.
 
@@ -33,6 +41,8 @@ First stable release.
 - Custom rules through `IValidable`, `IAssetValidator`, `IValidator`, and validator base classes.
 - Cancellable validation, JUnit XML exports, and batch-mode CI integration.
 
-[Unreleased]: https://github.com/Guillemsc/UnityValidator/compare/v1.1.0-preview.1...release/1.1.0
+[Unreleased]: https://github.com/Guillemsc/UnityValidator/compare/v1.1.0...release/1.1.X
+[1.1.0]: https://github.com/Guillemsc/UnityValidator/compare/v1.1.0-preview.2...v1.1.0
+[1.1.0-preview.2]: https://github.com/Guillemsc/UnityValidator/compare/v1.1.0-preview.1...v1.1.0-preview.2
 [1.1.0-preview.1]: https://github.com/Guillemsc/UnityValidator/compare/v1.0.0...v1.1.0-preview.1
 [1.0.0]: https://github.com/Guillemsc/UnityValidator/releases/tag/v1.0.0
